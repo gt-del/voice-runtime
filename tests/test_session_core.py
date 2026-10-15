@@ -95,8 +95,10 @@ def test_asr_stall_overflows_asr_in_without_deadlock(tmp_path):
 
 def test_first_chunk_timeout_fails_generation_and_returns_to_listening(tmp_path):
     hang = StreamFaults(300, 50, hang_after=0)
+    # 关闭预生成：首包超时从判停时启动的 LLM 起算（预生成失败另见 test_speculation）
     r = run_scenario(scenario("first_timeout", [Speech("Book a table for two please.")],
-                              llm=hang, close_after=("generation_failed", 1, 100)), tmp_path)
+                              llm=hang, close_after=("generation_failed", 1, 100)), tmp_path,
+                     speculation_enabled=False)
     ev = r.events
     commit = of(ev, "endpoint_committed")[0]
     to = of(ev, "provider_timeout", provider="llm", first=True)[0]
@@ -134,8 +136,9 @@ def test_turn_id_and_generation_id_come_from_data(tmp_path):
     r = run_scenario(scenario("ids", segs, replies=replies,
                               close_after=("context_committed", 4, 100)), tmp_path)
     ev = r.events
+    # endpoint_committed 携带服务这次判停的 generation（Task 16）
     assert [(e["turn_id"], e["generation_id"]) for e in of(ev, "endpoint_committed")] == \
-        [(1, None), (2, None)]
+        [(1, 1), (2, 2)]
     chunks = of(ev, "llm_chunk")
     assert {e["generation_id"] for e in chunks} == {1, 2}
     for e in chunks + of(ev, "tts_chunk") + of(ev, "audio_enqueued") + of(ev, "playback_started"):
@@ -170,7 +173,8 @@ def test_invalidate_is_idempotent(tmp_path):
     log = EventLog(tmp_path / "inv.jsonl", "s1")
     events: list[dict] = []
     log.add_listener(events.append)
-    session, _ = build_session(sc, RuntimeConfig(), log)
+    # 关闭预生成：只看判停后服务本轮的 generation，不混入被替换的预生成
+    session, _ = build_session(sc, RuntimeConfig(speculation_enabled=False), log)
 
     async def main():
         task = asyncio.create_task(session.run(), name="test/session")

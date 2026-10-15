@@ -44,6 +44,20 @@ def test_endpoint_and_first_audio_latency():
     assert m["turn_end_to_first_audio_ms"] == [500, 600]
 
 
+def test_first_audio_pairs_with_endpoint_generation_id():
+    """endpoint_committed 带 generation_id 时，只与该 generation 的 playback_started 配对：
+    被采用的预生成 id 比之前出现过的都小也照样配对；别的 generation 先出声不算。"""
+    e = Log()
+    e.marker(0, "speech", "start").marker(1000, "speech", "end")
+    e(1050, "speculation_started", gen=1, turn=1)
+    e(1100, "speculation_started", gen=2, turn=1)
+    e(1300, "endpoint_committed", gen=1, turn=1)  # 采用了较早的预生成 1
+    e(1500, "playback_started", gen=2, turn=1)  # 不可能出现，但不是本次判停的 generation，不计
+    e(1600, "playback_started", gen=1, turn=1)
+    m = compute_metrics(e.events)
+    assert m["turn_end_to_first_audio_ms"] == [300]
+
+
 def test_endpoint_without_playback_is_skipped():
     e = Log()
     e.marker(0, "speech", "start").marker(500, "speech", "end")

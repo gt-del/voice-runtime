@@ -46,6 +46,24 @@ def test_A_prime_no_extra_queueing(tmp_path):
     assert of(r.events, "playback_stopped")[-1]["payload"]["reason"] == "completed"
 
 
+def test_A_speculation_adopted_and_faster_than_A_prime(tmp_path):
+    r = run_scenario(scenario_a(), tmp_path)
+    rp = run_scenario(scenario_a_prime(), tmp_path)
+    ev = r.events
+    adopted = of(ev, "speculation_adopted")
+    assert len(adopted) == 1
+    commit = of(ev, "endpoint_committed")[0]
+    assert commit["generation_id"] == adopted[0]["generation_id"]
+    started = of(ev, "playback_started")
+    assert [s["generation_id"] for s in started] == [commit["generation_id"]]
+    assert started[0]["sequence_number"] > commit["sequence_number"]
+    assert not of(rp.events, "speculation_started")
+    a, a_prime = (x.metrics["turn_end_to_first_audio_ms"] for x in (r, rp))
+    assert len(a) == len(a_prime) == 1
+    assert a[0] < a_prime[0]
+    assert of(ev, "playback_stopped")[-1]["payload"]["reason"] == "completed"
+
+
 def test_B_no_early_playback_and_timely_endpoint(tmp_path):
     r = run_scenario(scenario_b(), tmp_path)
     ev = r.events
@@ -69,8 +87,11 @@ def test_C_interrupt_under_250ms(tmp_path):
     stop = of(ev, "playback_stopped", reason="paused_pending_decision")[0]
     cancel = of(ev, "generation_cancelled", reason="barge_in", duplicate=False)
     assert len(cancel) == 1 and cancel[0]["sequence_number"] > stop["sequence_number"]
-    purge = of(ev, "stale_event_dropped", gate="purge")
-    assert purge[0]["generation_id"] == 1 and purge[0]["payload"]["frames"] > 0
+    # 场景 C 开着预生成：每轮先被替换一次（ASR 比 VAD 慢，"...for two" → "...please"），再采用第二个
+    old_gid, new_gid = (c["generation_id"] for c in of(ev, "endpoint_committed"))
+    assert cancel[0]["generation_id"] == old_gid
+    purge = [p for p in of(ev, "stale_event_dropped", gate="purge") if p["generation_id"] == old_gid]
+    assert purge[0]["payload"]["frames"] > 0
     committed = of(ev, "context_committed")
     old = [c for c in committed if c["turn_id"] == 1 and c["payload"]["role"] == "assistant"][0]
     assert old["payload"]["interrupted"] is True
@@ -78,7 +99,8 @@ def test_C_interrupt_under_250ms(tmp_path):
     assert heard and LONG_REPLY.startswith(heard) and heard != LONG_REPLY
     new_user = [c for c in committed if c["turn_id"] == 2 and c["payload"]["role"] == "user"][0]
     assert new_user["payload"]["text"] == STOP
-    assert of(ev, "playback_started")[-1]["generation_id"] == 2
+    assert of(ev, "playback_started")[-1]["generation_id"] == new_gid
+    assert {w[1] for w in r.sink.writes} == {old_gid, new_gid}  # 被替换的预生成从未出声
     assert m["stale_chunk_played"] == 0 and m["false_interruption_count"] == 0
 
 
@@ -88,7 +110,9 @@ def test_D_noise_not_permanent(tmp_path):
     assert m["false_interruption_count"] == 0
     assert m["false_pause_count"] == 1 and m["pause_total_ms"] > 0
     assert m["playback_stop_ms"] == []  # 噪声不是 speech 开口，不计打断延迟
-    assert not of(ev, "generation_cancelled", duplicate=False)
+    # 只有被替换的预生成被作废，回复本身没有被取消
+    assert {c["payload"]["reason"] for c in of(ev, "generation_cancelled", duplicate=False)} == \
+        {"speculation_superseded"}
     assert [s["payload"]["reason"] for s in of(ev, "playback_stopped")] == \
         ["paused_pending_decision", "completed"]
 
@@ -136,7 +160,7 @@ def test_E_late_chunk_after_close_never_written(tmp_path):
     assert r.metrics["stale_chunk_played"] == 0
 
 
-@pytest.mark.parametrize("make", [scenario_a_prime, scenario_b, scenario_c, scenario_d,
+@pytest.mark.parametrize("make", [scenario_a, scenario_a_prime, scenario_b, scenario_c, scenario_d,
                                   scenario_e])
 def test_all_queues_bounded(tmp_path, make):
     r = run_scenario(make(), tmp_path)

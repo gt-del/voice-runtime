@@ -204,7 +204,9 @@ def test_concurrent_invalidate_is_idempotent(tmp_path):
         session.close()
         return await task
 
-    _, events, _, _ = drive(tmp_path, scenario("concurrent", [Speech(REQUEST)]), body)
+    # 关闭预生成：只看判停后服务本轮的 generation，不混入被替换的预生成
+    _, events, _, _ = drive(tmp_path, scenario("concurrent", [Speech(REQUEST)]), body,
+                            RuntimeConfig(speculation_enabled=False))
     cancelled = of(events, "generation_cancelled")
     assert [c["payload"]["duplicate"] for c in cancelled] == [False, True, True]
     assert len(of(events, "stale_event_dropped", gate="purge")) == 1

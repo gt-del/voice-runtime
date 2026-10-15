@@ -45,9 +45,14 @@ def compute_metrics(events: list[dict]) -> dict:
         elif et == ENDPOINT_COMMITTED:
             if last_speech_end is not None:
                 m["endpoint_latency_ms"].append(ts - last_speech_end)
-            floor = max_gen
-            first = _first_after(events, i, lambda x: x["event_type"] == PLAYBACK_STARTED
-                                 and (x["generation_id"] or 0) > floor)
+            gid = e["generation_id"]  # 服务本次判停的 generation（采用的预生成或新起的）
+            if gid is not None:
+                first = _first_after(events, i, lambda x: x["event_type"] == PLAYBACK_STARTED
+                                     and x["generation_id"] == gid)
+            else:  # 旧日志没有 generation_id：取之后第一个更新的 generation
+                floor = max_gen
+                first = _first_after(events, i, lambda x: x["event_type"] == PLAYBACK_STARTED
+                                     and (x["generation_id"] or 0) > floor)
             if first is not None:
                 m["turn_end_to_first_audio_ms"].append(first["timestamp"] - ts)
         elif et == PLAYBACK_STARTED:

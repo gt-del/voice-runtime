@@ -79,6 +79,8 @@ def scenario_d() -> Scenario:
 def scenario_e() -> Scenario:
     """E：同 C，但旧 generation 的 TTS 在 cancel 后再吐 2 个 chunk（+50ms、+3000ms）。
     新首帧距 cancel 约 1.5s（用户说完 + 判停 + LLM/TTS 首包），所以第 2 个迟到 chunk 晚于新首帧；
-    cancel_grace_ms 调到 4000 > 3000，保证它到达前看门狗不会取消；close_grace_ms 须 > cancel_grace_ms。"""
+    cancel_grace_ms 调到 4000 > 3000，保证它到达前看门狗不会取消；close_grace_ms 须 > cancel_grace_ms。
+    关闭预生成：假 TTS 对每个被取消的流都会吐迟到 chunk，被替换的预生成会混进来，E 只看被打断的那个。"""
     tts = StreamFaults(200, 40, late_after_cancel_ms=(50, 3000))
-    return _barge_in("E", tts, {"cancel_grace_ms": 4000, "close_grace_ms": 5000})
+    return _barge_in("E", tts, {"cancel_grace_ms": 4000, "close_grace_ms": 5000,
+                                "speculation_enabled": False})

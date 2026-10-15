@@ -24,9 +24,10 @@ def of(events, event_type, **match):
 
 def scenario(name, segments, *, reply=LONG_REPLY, replies=None,
              close_after=("context_committed", 2, 100), **kw):
+    # 本文件只测门禁：关闭预生成，第 k 次判停就是第 k 个 generation（预生成与打断的组合见场景 C/D）
     return Scenario(name=name, segments=segments, llm_replies=replies or {},
                     default_reply=reply, llm_faults=LLM, tts_faults=TTS,
-                    close_after=close_after, **kw)
+                    close_after=close_after, cfg_overrides={"speculation_enabled": False}, **kw)
 
 
 def onset(events, index):

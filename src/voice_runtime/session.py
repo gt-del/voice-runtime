@@ -11,13 +11,15 @@ from voice_runtime.config import RuntimeConfig
 from voice_runtime.endpointing.cascade import EndpointCascade, EndpointDecision
 from voice_runtime.events import (ASR_FINAL, ASR_PARTIAL, AUDIO_FRAME, BARGEIN_DECISION, CLOSE_TIMEOUT,
                                   CONTEXT_COMMITTED, ENDPOINT_COMMITTED, GENERATION_CANCELLED, GENERATION_FAILED,
-                                  PLAYBACK_STARTED, QUEUE_OVERFLOW, SESSION_CLOSED, SPEECH_END,
-                                  SPEECH_START, STALE_EVENT_DROPPED, EventLog)
+                                  PLAYBACK_STARTED, QUEUE_OVERFLOW, SESSION_CLOSED,
+                                  SPECULATION_ADOPTED, SPECULATION_DISCARDED, SPECULATION_STARTED,
+                                  SPEECH_END, SPEECH_START, STALE_EVENT_DROPPED, EventLog)
 from voice_runtime.gate import GateResult, Utterance, decide
 from voice_runtime.generation import Generation, GenerationSupervisor, GenState
 from voice_runtime.playback import AudioSink, Player
 from voice_runtime.providers.base import (ASR, LLM, TTS, VAD, AsrEvent, BackchannelScorer,
-                                          TurnScorer)
+                                          TurnScore, TurnScorer)
+from voice_runtime.providers.fake import normalize_text
 from voice_runtime.queues import BoundedQueue, QueueClosed
 from voice_runtime.script import ScriptedAudioSource
 from voice_runtime.speech import SpeechEdge, SpeechTracker
@@ -88,6 +90,7 @@ class Session:
         self._pending_decision: EndpointDecision | None = None  # 已判停、等 final 中
         self._gens: dict[int, Generation] = {}
         self._sups: dict[int, GenerationSupervisor] = {}
+        self._spec: Generation | None = None  # 进行中的预生成（§7，同一时间最多一个）
         self._running_sups: set[int] = set()  # supervisor 任务尚未退出的 generation
         self._tracker = SpeechTracker(cfg)
         # 打断门禁（设计 §9）
@@ -99,6 +102,7 @@ class Session:
         self._cascade = EndpointCascade(
             cfg, log, [x for x in (providers.l1, providers.l2, providers.l3) if x is not None],
             spawn=self._spawn)
+        self._cascade.on_l1_scored = self._on_l1_scored
         self._player = Player(cfg, log, self.queues["playback"], sink,
                               is_active=lambda gid: gid == self.active_generation_id,
                               ledgers=self._ledger_of,
@@ -187,6 +191,7 @@ class Session:
         cur = self._player.current_generation
         if audible and cur is not None:
             self._player.stop_generation(cur, "session_closed")
+        self._drop_speculation("session_closed")
         gid = self.active_generation_id
         if gid is not None:
             self.invalidate(self._gens[gid], "session_closed")
@@ -321,16 +326,61 @@ class Session:
         else:
             return
         self._pending_decision = None
-        self._turn_text = self._cascade.current_text
-        self._log.emit(ENDPOINT_COMMITTED, turn_id=self.turn_id, decided_at=d.decided_at_ms,
-                       text_source=source, reason=d.reason, level=d.level, p=d.p,
-                       threshold=d.threshold, text=self._turn_text)
-        self._start_generation(self._turn_text)
+        self._turn_text = text = self._cascade.current_text
+        spec = self._spec
+        adopt = spec is not None and normalize_text(spec.user_text) == normalize_text(text)
+        if adopt:
+            gid = spec.id
+        else:
+            self.generation_id += 1
+            gid = self.generation_id
+        self._log.emit(ENDPOINT_COMMITTED, turn_id=self.turn_id, generation_id=gid,
+                       decided_at=d.decided_at_ms, text_source=source, reason=d.reason,
+                       level=d.level, p=d.p, threshold=d.threshold, text=text)
+        if adopt:
+            # §7 确认：文本一致 → 门控从 held 切到 playing，generation 继续往下生成
+            self._spec = None
+            spec.speculative = False
+            self._log.emit(SPECULATION_ADOPTED, turn_id=spec.turn_id, generation_id=gid,
+                           text=spec.user_text)
+        else:
+            if spec is not None:
+                self._drop_speculation("speculation_discarded")
+                self._log.emit(SPECULATION_DISCARDED, turn_id=spec.turn_id, generation_id=spec.id,
+                               spec_text=spec.user_text, final_text=text)
+            self._start_generation(gid, text, speculative=False)
+            self._player.hold(gid)
+        self._player.release(gid)
+        self.state = SessionState.PENDING
 
-    def _start_generation(self, text: str) -> None:
+    def _on_l1_scored(self, score: TurnScore, text: str) -> None:
+        """§7 触发：静音中 L1 对当前文本 p ≥ speculate_threshold；规范化文本变了才作废旧的、重启。"""
+        if (not self.cfg.speculation_enabled or self.state is not SessionState.LISTENING
+                or not self._turn_open or score.p_complete < self.cfg.speculate_threshold):
+            return
+        if self._spec is not None and normalize_text(self._spec.user_text) == normalize_text(text):
+            return
+        self._drop_speculation("speculation_superseded")
         self.generation_id += 1
-        gid = self.generation_id
-        gen = Generation(id=gid, turn_id=self.turn_id, user_text=text, speculative=False,
+        gen = self._start_generation(self.generation_id, text, speculative=True)
+        self._spec = gen
+        self._player.hold(gen.id)  # 只 hold 不放行：音频存在 playback 队列里，满了 TTS 就被阻塞
+        self._log.emit(SPECULATION_STARTED, turn_id=gen.turn_id, generation_id=gen.id, text=text)
+
+    def _drop_speculation(self, reason: str) -> None:
+        """作废进行中的预生成：放下 held 门控、invalidate（清掉已入队帧），已入队的 chunk 记为 dropped。"""
+        spec, self._spec = self._spec, None
+        if spec is None:
+            return
+        self._player.unhold(spec.id)
+        for c in spec.ledger.summary()["chunks"]:
+            if c["enqueued"] and c["state"] != "dropped":
+                spec.ledger.on_dropped(c["chunk_id"], "speculation_discarded", "purge")
+        self.invalidate(spec, reason)
+        self._prune(spec.id)
+
+    def _start_generation(self, gid: int, text: str, speculative: bool) -> Generation:
+        gen = Generation(id=gid, turn_id=self.turn_id, user_text=text, speculative=speculative,
                          state=GenState.ACTIVE,
                          text_queue=BoundedQueue(f"text-gen{gid}", self.cfg.text_capacity),
                          ledger=TruthLedger(gid))
@@ -346,9 +396,7 @@ class Session:
         self._running_sups.add(gid)
         task = self._spawn(sup.run(), f"gen-{gid}/supervisor")
         task.add_done_callback(lambda _: self._on_supervisor_exit(gid))
-        self._player.hold(gid)
-        self._player.release(gid)
-        self.state = SessionState.PENDING
+        return gen
 
     def _on_supervisor_exit(self, gid: int) -> None:
         self._running_sups.discard(gid)
@@ -385,6 +433,11 @@ class Session:
         self._end_turn(reason, gen)
 
     def _on_failed(self, gen: Generation, reason: str) -> None:
+        if gen is self._spec:
+            # 预生成失败：只作废它，轮次照常（判停时没有预生成，就用判停文本重新生成）
+            self._drop_speculation(reason)
+            self._log.emit(GENERATION_FAILED, turn_id=gen.turn_id, generation_id=gen.id, reason=reason)
+            return
         if gen.id != self.active_generation_id:  # 已作废或已结束：只留幂等记录
             self.invalidate(gen, reason)
             return
@@ -395,6 +448,7 @@ class Session:
         self._end_turn("failed", gen)
 
     def _end_turn(self, outcome: str, gen: Generation) -> None:
+        self._drop_speculation("turn_ended")
         interrupted = outcome == "interrupted"
         heard = gen.ledger.summary()["heard_text"]
         self._log.emit(CONTEXT_COMMITTED, turn_id=gen.turn_id, generation_id=gen.id,
