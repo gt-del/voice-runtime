@@ -47,7 +47,7 @@ def test_required_event_types_are_declared():
             "script_marker", "turn_score", "speculation_started", "speculation_adopted", "speculation_discarded",
             "playback_resumed", "playback_underrun", "bargein_decision", "context_committed", "queue_overflow",
             "provider_timeout", "task_failed", "generation_failed", "cancel_grace_exceeded",
-            "close_timeout"} <= ALL_EVENT_TYPES
+            "close_timeout", "turn_started"} <= ALL_EVENT_TYPES
 
 
 def test_config_defaults_match_design():

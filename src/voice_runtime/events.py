@@ -35,6 +35,7 @@ TASK_FAILED = "task_failed"
 GENERATION_FAILED = "generation_failed"
 CANCEL_GRACE_EXCEEDED = "cancel_grace_exceeded"
 CLOSE_TIMEOUT = "close_timeout"
+TURN_STARTED = "turn_started"
 
 ALL_EVENT_TYPES: frozenset[str] = frozenset({
     AUDIO_FRAME,
@@ -67,6 +68,7 @@ ALL_EVENT_TYPES: frozenset[str] = frozenset({
     GENERATION_FAILED,
     CANCEL_GRACE_EXCEEDED,
     CLOSE_TIMEOUT,
+    TURN_STARTED,
 })
 
 

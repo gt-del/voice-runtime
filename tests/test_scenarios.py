@@ -131,13 +131,19 @@ def test_E_late_chunks_never_played(tmp_path):
     cancel_ts, new_first = _cancel_and_new_first(r)
     second_late = sc.tts_faults.late_after_cancel_ms[1]
     grace = sc.cfg_overrides["cancel_grace_ms"]
-    assert (second_late, grace) == (3000, 4000)
+    assert (second_late, grace) == (1500, 2000)
     # 新首帧相对 cancel 的偏移 < 第 2 个迟到 chunk 的到达偏移 < cancel_grace_ms（设计 §12）
     assert new_first - cancel_ts < second_late < grace
     late = of(ev, "stale_event_dropped", phase="late", unit="chunk")
     assert [x["generation_id"] for x in late] == [1, 1]
     assert late[0]["timestamp"] - cancel_ts == sc.tts_faults.late_after_cancel_ms[0]
     assert late[1]["timestamp"] - cancel_ts == second_late and late[1]["timestamp"] > new_first
+    # 第 2 个迟到 chunk 在新 generation 播放期间到达，并在闸②被拦下
+    new_start = [s for s in of(ev, "playback_started") if s["generation_id"] == 2][0]
+    new_stop = [s for s in of(ev, "playback_stopped") if s["generation_id"] == 2][-1]
+    assert new_start["sequence_number"] < late[1]["sequence_number"] < new_stop["sequence_number"]
+    assert new_start["timestamp"] < late[1]["timestamp"] < new_stop["timestamp"]
+    assert late[1]["payload"]["gate"] == "2"
     assert m["stale_chunk_received"] == 2 and m["stale_chunk_played"] == 0
     assert not [w for w in r.sink.writes if w[1] == 1 and w[0] >= cancel_ts]
     assert not of(ev, "cancel_grace_exceeded")
@@ -183,3 +189,34 @@ def test_trace_is_byte_identical_across_runs(tmp_path):
     run_scenario(scenario_c(), b)
     data = (a / "C.jsonl").read_bytes()
     assert data and data == (b / "C.jsonl").read_bytes()
+
+
+@pytest.mark.parametrize("make", [scenario_a, scenario_a_prime, scenario_b, scenario_c, scenario_d,
+                                  scenario_e])
+def test_each_turn_first_appears_with_turn_started(tmp_path, make):
+    ev = run_scenario(make(), tmp_path).events
+    first: dict[int, dict] = {}
+    for e in ev:
+        if e["turn_id"] is not None:
+            first.setdefault(e["turn_id"], e)
+    assert first and all(e["event_type"] == "turn_started" for e in first.values())
+    started = of(ev, "turn_started")
+    assert [s["turn_id"] for s in started] == sorted(first)  # 每轮恰好一条，按序
+    assert all(s["payload"]["cause"] in ("speech_start", "barge_in", "carry_over") for s in started)
+
+
+def test_C_turn_started_causes(tmp_path):
+    started = of(run_scenario(scenario_c(), tmp_path).events, "turn_started")
+    assert [s["payload"]["cause"] for s in started] == ["speech_start", "barge_in"]
+
+
+def test_C_purged_chunks_dropped_in_interrupted_truth(tmp_path):
+    ev = run_scenario(scenario_c(), tmp_path).events
+    stop = of(ev, "playback_stopped", reason="interrupted")[0]
+    chunks = stop["payload"]["playback_truth"]["chunks"]
+    enqueued = [c for c in chunks if c["enqueued"]]
+    unplayed = [c for c in enqueued if c["played_samples"] == 0]
+    assert unplayed and all(c["state"] == "dropped" for c in unplayed)
+    purge = [p for p in of(ev, "stale_event_dropped", gate="purge")
+             if p["generation_id"] == stop["generation_id"]][0]
+    assert purge["payload"]["frames"] > 0

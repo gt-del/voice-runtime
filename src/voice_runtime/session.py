@@ -13,7 +13,8 @@ from voice_runtime.events import (ASR_FINAL, ASR_PARTIAL, AUDIO_FRAME, BARGEIN_D
                                   CONTEXT_COMMITTED, ENDPOINT_COMMITTED, GENERATION_CANCELLED, GENERATION_FAILED,
                                   PLAYBACK_STARTED, QUEUE_OVERFLOW, SESSION_CLOSED,
                                   SPECULATION_ADOPTED, SPECULATION_DISCARDED, SPECULATION_STARTED,
-                                  SPEECH_END, SPEECH_START, STALE_EVENT_DROPPED, EventLog)
+                                  SPEECH_END, SPEECH_START, STALE_EVENT_DROPPED, TURN_STARTED,
+                                  EventLog)
 from voice_runtime.gate import GateResult, Utterance, decide
 from voice_runtime.generation import Generation, GenerationSupervisor, GenState
 from voice_runtime.playback import AudioSink, Player
@@ -162,6 +163,7 @@ class Session:
         gen.state = GenState.CANCELLED
         self._log.emit(GENERATION_CANCELLED, turn_id=gen.turn_id, generation_id=gen.id,
                        reason=reason, duplicate=False)
+        gen.ledger.drop_unplayed(reason, "purge")  # 停播路径已在快照前记过账：这里幂等
         n = self.queues["playback"].purge(lambda it: it.generation_id == gen.id)
         self._log.emit(STALE_EVENT_DROPPED, turn_id=gen.turn_id, generation_id=gen.id,
                        gate="purge", phase="purge", unit="frame", frames=n)
@@ -190,6 +192,7 @@ class Session:
         # 与打断相同：先停播（补记关闭前已播帧的 progress、附 Playback Truth），再作废
         cur = self._player.current_generation
         if audible and cur is not None:
+            self._ledger_of(cur).drop_unplayed("session_closed", "purge")
             self._player.stop_generation(cur, "session_closed")
         self._drop_speculation("session_closed")
         gid = self.active_generation_id
@@ -293,7 +296,7 @@ class Session:
     def _on_speech_edge(self, edge: SpeechEdge) -> None:
         listening = self.state is SessionState.LISTENING
         if edge.kind == "start" and listening and not self._turn_open:
-            self._open_turn()
+            self._open_turn("speech_start", edge.ts_ms)
         self._log.emit(SPEECH_START if edge.kind == "start" else SPEECH_END, turn_id=self._tid,
                        ts_ms=edge.ts_ms, epoch=edge.epoch)
         g = self._gate
@@ -306,10 +309,13 @@ class Session:
                 self._pending_decision = None  # 等 final 期间用户又开口：判停作废，cascade 重新判
             self._cascade.on_speech_edge(edge)
 
-    def _open_turn(self) -> None:
+    def _open_turn(self, cause: str, start_ms: int) -> None:
+        """cause：speech_start（LISTENING 中开口）、barge_in（打断者成为新一轮）、
+        carry_over（轮次结束时用户正在说的话）。"""
         self.turn_id += 1
         self._turn_open = True
         self._cascade.turn_id = self.turn_id
+        self._log.emit(TURN_STARTED, turn_id=self.turn_id, cause=cause, start_ms=start_ms)
 
     def _control_tick(self, now: int) -> None:
         if self.state is not SessionState.LISTENING or not self._turn_open:
@@ -442,6 +448,7 @@ class Session:
             self.invalidate(gen, reason)
             return
         if self._player.current_generation == gen.id:
+            gen.ledger.drop_unplayed(reason, "purge")
             self._player.stop_generation(gen.id, "generation_failed")
         self.invalidate(gen, reason)
         self._log.emit(GENERATION_FAILED, turn_id=gen.turn_id, generation_id=gen.id, reason=reason)
@@ -449,7 +456,7 @@ class Session:
 
     def _end_turn(self, outcome: str, gen: Generation) -> None:
         self._drop_speculation("turn_ended")
-        interrupted = outcome == "interrupted"
+        interrupted = outcome != "completed"  # 打断、截断、失败：被切断的回复不能看起来像说完了
         heard = gen.ledger.summary()["heard_text"]
         self._log.emit(CONTEXT_COMMITTED, turn_id=gen.turn_id, generation_id=gen.id,
                        role="user", text=self._turn_text, outcome=outcome)
@@ -468,10 +475,10 @@ class Session:
         carry, self._gate = self._gate, None
         if carry is not None:
             # 门禁中的那段话（打断者，或 generation 失败时正在评估的话）成为下一轮
-            self._hand_to_cascade(carry)
+            self._hand_to_cascade(carry, "barge_in" if interrupted else "carry_over")
         elif self._tracker.in_speech:
             # 用户正说到一半（播放期间开口）：这段话直接成为下一轮，后续的累计 ASR 文本归入新轮次
-            self._open_turn()
+            self._open_turn("carry_over", self._tracker.speech_start_ms)
             self._cascade.on_speech_edge(
                 SpeechEdge("start", self._tracker.speech_start_ms, self._tracker.epoch))
 
@@ -595,17 +602,19 @@ class Session:
             self.invalidate(gen, "user_continued")
             self._prune(gen.id)
             self.state = SessionState.LISTENING
-            self._hand_to_cascade(g)
+            self._hand_to_cascade(g, "carry_over")  # 轮次仍开着：不会新开轮次
             return
+        # 先把随后 invalidate 要清除的帧记为 dropped，playback_stopped 附带的 Playback Truth 才与之一致
+        gen.ledger.drop_unplayed("barge_in", "purge")
         self._player.stop_generation(gen.id, "interrupted")
         self.invalidate(gen, "barge_in")
         self._end_turn("interrupted", gen)  # 门禁中的这段话在 _end_turn 里成为新一轮
 
-    def _hand_to_cascade(self, g: _GateUtterance) -> None:
+    def _hand_to_cascade(self, g: _GateUtterance, cause: str) -> None:
         """把这段话补放进 cascade：开口边沿、已有文本，以及（已说完时）speech_end 边沿。"""
-        if not self._turn_open:
-            self._open_turn()
         u = g.u
+        if not self._turn_open:
+            self._open_turn(cause, u.start_ms)
         self._cascade.on_speech_edge(SpeechEdge("start", u.start_ms, g.epoch))
         for text, is_final in g.segments.values():  # 逐段补放：先各段 final，最后一段可能仍是 partial
             self._cascade.on_text(text, is_final)

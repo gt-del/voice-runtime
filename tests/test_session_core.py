@@ -220,3 +220,50 @@ def test_l2_scorer_is_wired_and_receives_audio(tmp_path):
     assert got and got[0]
     ep = of(r.events, "endpoint_committed")[0]["payload"]
     assert ep["level"] == 2
+
+
+def _tts_fails_mid_playback(tmp_path):
+    """长回复的 TTS 在第 10 个 chunk 处抛异常（此时已开播、队列里还有帧）；随后用户再说一句短的。"""
+    from voice_runtime.scenarios import LONG_REPLY
+    segs = [Speech("Book a table for two please."), AfterEvent("generation_failed", 300),
+            Speech("Thanks.")]
+    sc = Scenario(name="tts_fail", segments=segs, llm_replies={"Thanks.": "Sure."},
+                  default_reply=LONG_REPLY, llm_faults=LLM,
+                  tts_faults=StreamFaults(200, 40, raise_at=10),
+                  close_after=("context_committed", 4, 300))
+    return run_scenario(sc, tmp_path, speculation_enabled=False)
+
+
+def test_tts_failure_mid_playback_stops_then_cancels_and_session_continues(tmp_path):
+    r = _tts_fails_mid_playback(tmp_path)
+    ev = r.events
+    stopped = of(ev, "playback_stopped", reason="generation_failed")
+    assert len(stopped) == 1 and stopped[0]["generation_id"] == 1
+    started = [s for s in of(ev, "playback_started") if s["generation_id"] == 1][0]
+    assert started["sequence_number"] < stopped[0]["sequence_number"]  # 确实是播放中失败
+    cancel = of(ev, "generation_cancelled", duplicate=False)[0]
+    failed = of(ev, "generation_failed")
+    assert cancel["generation_id"] == 1 and cancel["payload"]["reason"] == "task_failed"
+    assert [f["generation_id"] for f in failed] == [1]
+    assert stopped[0]["sequence_number"] < cancel["sequence_number"] < failed[0]["sequence_number"]
+    assert of(ev, "task_failed", task="gen-1/tts_bridge")
+    # 回到 LISTENING 并继续：第二轮正常判停、播完
+    assert [s["payload"]["reason"] for s in of(ev, "playback_stopped") if s["generation_id"] == 2] \
+        == ["completed"]
+    assert r.state_at_close is SessionState.LISTENING
+    # 失败之后旧 generation 不再有任何 sink 写入
+    assert not [w for w in r.sink.writes if w[1] == 1 and w[0] >= cancel["timestamp"]]
+    assert r.metrics["stale_chunk_played"] == 0
+    # 被清除的已入队 chunk 在快照中记为 dropped
+    chunks = stopped[0]["payload"]["playback_truth"]["chunks"]
+    assert any(c["state"] == "dropped" for c in chunks)
+
+
+def test_failed_turn_marks_heard_text_interrupted(tmp_path):
+    r = _tts_fails_mid_playback(tmp_path)
+    ctx = of(r.events, "context_committed", role="assistant")
+    assert [c["generation_id"] for c in ctx] == [1, 2]
+    assert ctx[0]["payload"]["interrupted"] is True and ctx[1]["payload"]["interrupted"] is False
+    assistant = [m for m in r.session.context if m["role"] == "assistant"]
+    assert assistant[0]["content"].endswith(" (interrupted)")
+    assert not assistant[1]["content"].endswith(" (interrupted)")

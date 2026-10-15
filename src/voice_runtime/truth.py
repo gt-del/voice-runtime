@@ -45,6 +45,12 @@ class TruthLedger:
     def on_dropped(self, chunk_id: int, reason: str, gate: str) -> None:
         self._chunks[chunk_id].dropped = (reason, gate)
 
+    def drop_unplayed(self, reason: str, gate: str) -> None:
+        """还有已入队未播的帧的 chunk 记为 dropped：invalidate 清除 playback 队列时，这些帧正是被清掉的那些。"""
+        for c in self._chunks.values():
+            if c.dropped is None and c.enqueued_frames > c.played_frames:
+                c.dropped = (reason, gate)
+
     def _heard_range(self) -> tuple[int, int] | None:
         start = end = None
         for _, c in sorted(self._chunks.items()):
