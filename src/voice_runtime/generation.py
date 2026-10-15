@@ -12,6 +12,7 @@ from voice_runtime.events import (AUDIO_ENQUEUED, CANCEL_GRACE_EXCEEDED, LLM_CHU
 from voice_runtime.playback import PlaybackEOS, PlaybackFrame
 from voice_runtime.providers.base import LLM, TTS, ProviderStream
 from voice_runtime.queues import BoundedQueue, QueueClosed
+from voice_runtime.trim import trim_leading_noise
 from voice_runtime.truth import TruthLedger
 from voice_runtime.vloop import now_ms
 
@@ -271,6 +272,8 @@ class GenerationSupervisor:
                 continue
             if chunk is None:
                 break
+            if chunk_id == 0 and self._cfg.trim_enabled:  # 只裁每个 generation 的第一个 chunk
+                chunk = trim_leading_noise(chunk, max_trim_ms=self._cfg.max_trim_ms)
             self._tts_got_first = True
             live = self._received_live()
             samples = len(chunk.pcm) // 2
