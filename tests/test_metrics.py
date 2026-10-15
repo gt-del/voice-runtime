@@ -2,8 +2,8 @@ from voice_runtime.metrics import compute_metrics
 
 KEYS = {"endpoint_latency_ms", "turn_end_to_first_audio_ms", "speech_start_detection_ms",
         "playback_stop_ms", "interruption_decision_ms", "overlap_ms", "false_interruption_count",
-        "false_pause_count", "pause_total_ms", "stale_chunk_received", "stale_chunk_played",
-        "stale_purged_frames", "stale_rejected_on_wake", "queue_max_depth"}
+        "false_pause_count", "pause_total_ms", "echo_count", "stale_chunk_received",
+        "stale_chunk_played", "stale_purged_frames", "stale_rejected_on_wake", "queue_max_depth"}
 
 
 class Log:
@@ -149,6 +149,22 @@ def test_false_interruption_counts_interrupts_caused_by_noise():
     e(2100, "bargein_decision", gen=3, result="noise")  # 判为噪声：不算
     m = compute_metrics(e.events)
     assert m["false_interruption_count"] == 1
+
+
+def test_echo_counted_and_echo_caused_interrupt_is_false():
+    e = Log()
+    e(0, "playback_started", gen=1)
+    e.marker(500, "echo", "start")
+    e(540, "playback_stopped", gen=1, reason="paused_pending_decision")
+    e.marker(700, "echo", "end")
+    e(900, "bargein_decision", gen=1, result="echo")
+    e(900, "playback_resumed", gen=1, paused_ms=360)
+    e.marker(1500, "echo", "start")
+    e(1800, "bargein_decision", gen=1, result="interrupt")  # 回声之后、没有语音：误打断
+    m = compute_metrics(e.events)
+    assert (m["echo_count"], m["false_pause_count"], m["pause_total_ms"]) == (1, 1, 360)
+    assert m["false_interruption_count"] == 1
+    assert m["playback_stop_ms"] == []  # 回声不是用户开口，不计打断延迟
 
 
 def test_stale_counters_are_separate():

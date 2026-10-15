@@ -2,7 +2,7 @@ import asyncio
 
 from voice_runtime.audio import rms, tone, word_duration_ms
 from voice_runtime.events import EventLog, SCRIPT_MARKER, read_jsonl
-from voice_runtime.script import (AfterEvent, Disconnect, Noise, ScriptedAudioSource,
+from voice_runtime.script import (AfterEvent, Disconnect, Echo, Noise, ScriptedAudioSource,
                                   Silence, Speech, speech_word_times)
 from voice_runtime.vloop import run
 
@@ -123,3 +123,22 @@ def test_unknown_segment_type_raises_type_error(tmp_path):
     import pytest
     with pytest.raises(TypeError):
         run(body())
+
+
+def test_echo_segment_is_loud_audio_with_eval_only_marker(tmp_path):
+    async def body():
+        log = EventLog(tmp_path / "e.jsonl", "s")
+        src = ScriptedAudioSource([Silence(40), Echo(200)], log)
+        out = []
+        async for f in src.frames():
+            out.append(f)
+            if len(out) == 14:
+                break
+        return out
+
+    frames = run(body())
+    loud = [f.ts_ms for f in frames if rms(f.pcm) > 1000]
+    assert loud == list(range(40, 240, 20))
+    assert all(f.pcm == tone(20, 3000) for f in frames[2:12])  # 帧本身没有任何"回声"标签
+    ms = [(t, p) for t, p in _markers(tmp_path / "e.jsonl") if p["segment"] == "echo"]
+    assert [(t, p["phase"], p["eval_only"]) for t, p in ms] == [(40, "start", True), (240, "end", True)]

@@ -1,4 +1,4 @@
-"""依次跑 A'、A、B、C、D、E 六个场景，输出 trace 与指标汇总。
+"""依次跑 A'、A、B、C、D、E、F 七个场景，输出 trace 与指标汇总。
 
 用法：python scripts/run_scenarios.py --out sample-output
 """
@@ -9,15 +9,16 @@ from pathlib import Path
 
 from voice_runtime.runner import run_scenario
 from voice_runtime.scenarios import (scenario_a, scenario_a_prime, scenario_b, scenario_c,
-                                     scenario_d, scenario_e)
+                                     scenario_d, scenario_e, scenario_f)
 
-SCENARIOS = [scenario_a_prime, scenario_a, scenario_b, scenario_c, scenario_d, scenario_e]
+SCENARIOS = [scenario_a_prime, scenario_a, scenario_b, scenario_c, scenario_d, scenario_e,
+             scenario_f]
 # metrics.md 汇总表的列：列表型指标显示为逗号分隔的值
 COLUMNS = [
     "endpoint_latency_ms", "turn_end_to_first_audio_ms", "speech_start_detection_ms",
     "playback_stop_ms", "interruption_decision_ms", "overlap_ms", "false_interruption_count",
-    "false_pause_count", "pause_total_ms", "stale_chunk_received", "stale_chunk_played",
-    "stale_purged_frames", "stale_rejected_on_wake",
+    "false_pause_count", "pause_total_ms", "echo_count", "stale_chunk_received",
+    "stale_chunk_played", "stale_purged_frames", "stale_rejected_on_wake",
 ]
 
 

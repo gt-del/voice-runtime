@@ -7,8 +7,8 @@ from helpers import run_scenario
 from voice_runtime.audio import word_duration_ms
 from voice_runtime.config import RuntimeConfig
 from voice_runtime.queues import BoundedQueue
-from voice_runtime.scenarios import (LONG_REPLY, STOP, scenario_a, scenario_a_prime,
-                                     scenario_b, scenario_c, scenario_d, scenario_e)
+from voice_runtime.scenarios import (LONG_REPLY, REQUEST, STOP, scenario_a, scenario_a_prime,
+                                     scenario_b, scenario_c, scenario_d, scenario_e, scenario_f)
 
 CFG = RuntimeConfig()
 
@@ -117,6 +117,33 @@ def test_D_noise_not_permanent(tmp_path):
         ["paused_pending_decision", "completed"]
 
 
+def test_F_echo_resumes_and_never_reaches_context(tmp_path):
+    r = run_scenario(scenario_f(), tmp_path)
+    ev, m = r.events, r.metrics
+    echo_start = marker(ev, "echo", "start")
+    paused = of(ev, "playback_stopped", reason="paused_pending_decision")
+    assert len(paused) == 1 and paused[0]["timestamp"] - echo_start <= 60  # 3 帧语音能量即暂停
+    d = of(ev, "bargein_decision")
+    assert [(x["payload"]["result"], x["payload"]["rule"]) for x in d] == [("echo", "echo_match")]
+    assert d[0]["payload"]["words"] == [] and d[0]["payload"]["echo_words"]
+    # 假 ASR 把回声"听"成扬声器当时播的词：都出自正在播的这段回复
+    final = [f for f in of(ev, "asr_final") if f["timestamp"] > echo_start][0]
+    assert final["payload"]["text"] and final["payload"]["text"].lower() in LONG_REPLY.lower()
+    resumed = of(ev, "playback_resumed")
+    assert len(resumed) == 1 and resumed[0]["sequence_number"] > d[0]["sequence_number"]
+    assert [s["payload"]["reason"] for s in of(ev, "playback_stopped")] == \
+        ["paused_pending_decision", "completed"]
+    assert m["false_interruption_count"] == 0 and m["echo_count"] == 1
+    assert m["false_pause_count"] == 1 and m["pause_total_ms"] > 0
+    assert m["playback_stop_ms"] == []  # 回声不是用户开口，不计打断延迟
+    assert len(of(ev, "turn_started")) == 1 and len(of(ev, "endpoint_committed")) == 1
+    assert [c["payload"]["text"] for c in of(ev, "context_committed", role="user")] == [REQUEST]
+    assert list(r.session.context) == [{"role": "user", "content": REQUEST},
+                                       {"role": "assistant", "content": LONG_REPLY}]
+    assert {c["payload"]["reason"] for c in of(ev, "generation_cancelled", duplicate=False)} <= \
+        {"speculation_superseded"}  # 回复本身没有被取消
+
+
 def _cancel_and_new_first(r):
     ev = r.events
     cancel_ts = of(ev, "generation_cancelled", reason="barge_in", duplicate=False)[0]["timestamp"]
@@ -167,7 +194,7 @@ def test_E_late_chunk_after_close_never_written(tmp_path):
 
 
 @pytest.mark.parametrize("make", [scenario_a, scenario_a_prime, scenario_b, scenario_c, scenario_d,
-                                  scenario_e])
+                                  scenario_e, scenario_f])
 def test_all_queues_bounded(tmp_path, make):
     r = run_scenario(make(), tmp_path)
     cfg = r.session.cfg
@@ -192,7 +219,7 @@ def test_trace_is_byte_identical_across_runs(tmp_path):
 
 
 @pytest.mark.parametrize("make", [scenario_a, scenario_a_prime, scenario_b, scenario_c, scenario_d,
-                                  scenario_e])
+                                  scenario_e, scenario_f])
 def test_each_turn_first_appears_with_turn_started(tmp_path, make):
     ev = run_scenario(make(), tmp_path).events
     first: dict[int, dict] = {}

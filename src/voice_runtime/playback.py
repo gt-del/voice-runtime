@@ -176,7 +176,7 @@ class Player:
     def _write(self, item: PlaybackFrame) -> None:
         gen = item.generation_id
         self._sink.write(gen, item.frame_index, item.pcm)
-        self._ledgers(gen).on_played(item.chunk_id, item.frame_index)
+        self._ledgers(gen).on_played(item.chunk_id, item.frame_index, now_ms())
         self._written += 1
         self._underrun = False
         if self._written == 1:

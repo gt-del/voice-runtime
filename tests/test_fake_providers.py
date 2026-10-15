@@ -5,9 +5,10 @@ import pytest
 from voice_runtime.audio import Frame, tone, word_duration_ms
 from voice_runtime.events import EventLog
 from voice_runtime.providers.base import TurnScore
-from voice_runtime.providers.fake import (FakeASR, FakeBackchannelScorer, FakeLLM, FakeTTS, FakeVAD,
-                                          ScriptedTurnScorer, StreamFaults, normalize_text)
-from voice_runtime.script import Noise, ScriptedAudioSource, Silence, Speech
+from voice_runtime.playback import FakeSink
+from voice_runtime.providers.fake import (EchoPath, FakeASR, FakeBackchannelScorer, FakeLLM, FakeTTS,
+                                          FakeVAD, ScriptedTurnScorer, StreamFaults, normalize_text)
+from voice_runtime.script import Echo, Noise, ScriptedAudioSource, Silence, Speech
 from voice_runtime.vloop import now_ms, run
 
 LONG = "one two three four five six seven eight"
@@ -145,6 +146,54 @@ def test_fake_asr_partials_finals_and_empty_final_for_noise(tmp_path):
     assert (fin.segment_start_ms, fin.segment_end_ms) == (0, 280)
     assert [(w.w, w.start_ms, w.end_ms) for w in fin.words] == [
         ("Stop.", 0, 100), ("Make", 100, 200), ("it", 200, 280)]
+
+
+def test_fake_asr_recognises_echo_as_words_played_during_it(tmp_path):
+    calls = []
+
+    def played(start, end):  # 假声学：扬声器在 1000ms 起每 100ms 放一个词
+        calls.append((start, end))
+        return ["for", "Thursday", "at"][:max(0, (end - 1000) // 100)]
+
+    async def body():
+        log = EventLog(tmp_path / "e.jsonl", "s")
+        segs = [Silence(1000), Echo(300), Silence(1000)]
+        src = ScriptedAudioSource(segs, log)
+        out = []
+        async for ev in FakeASR(segs, echo=played).run(src.frames()):
+            out.append(ev)
+            if ev.kind == "final":
+                break
+        return out
+
+    out = run(body())
+    # partial 只查到当前帧起点（1280 时只放完 2 个词），final 查整段
+    assert [(e.kind, e.text) for e in out] == [
+        ("partial", "for"), ("partial", "for Thursday"), ("final", "for Thursday at")]
+    assert (out[-1].segment_start_ms, out[-1].segment_end_ms) == (1000, 1300)
+    assert calls[-1] == (1000, 1300)  # final 用整段回声的时间范围去查
+
+
+def test_echo_path_maps_sink_writes_to_played_words(tmp_path):
+    log = EventLog(tmp_path / "e.jsonl", "s")
+    sink = FakeSink()
+    echo = EchoPath(log, sink)
+
+    async def feed():
+        log.emit("llm_chunk", generation_id=3, text="Sure, ")
+        log.emit("llm_chunk", generation_id=3, text="booked now. ")
+        # 第一个 chunk：40ms 底噪 + "Sure,"(100ms) + "booked"(120ms)；第二个："now."(80ms)
+        log.emit("tts_chunk", generation_id=3, chunk_id=0, text_range=[0, 12], samples=260 * 16,
+                 trimmed_samples=0)
+        log.emit("tts_chunk", generation_id=3, chunk_id=1, text_range=[12, 17], samples=80 * 16,
+                 trimmed_samples=0)
+
+    run(feed())
+    sink.writes += [(1000 + i * 20, 3, i) for i in range(17)]
+    assert echo.words(0, 5000) == ["Sure,", "booked", "now."]
+    assert echo.words(1000, 1040) == []  # 只有底噪
+    assert echo.words(1130, 1150) == ["Sure,", "booked"]  # 1120 写入的帧仍在响
+    assert echo.words(1260, 1270) == ["now."]
 
 
 def test_fake_asr_hang_at_stops_consuming(tmp_path):

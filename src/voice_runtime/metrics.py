@@ -23,14 +23,14 @@ def compute_metrics(events: list[dict]) -> dict:
         "speech_start_detection_ms": [], "playback_stop_ms": [],
         "interruption_decision_ms": [], "overlap_ms": [],
         "false_interruption_count": 0, "false_pause_count": 0, "pause_total_ms": 0,
-        "stale_chunk_received": 0, "stale_chunk_played": 0, "stale_purged_frames": 0,
-        "stale_rejected_on_wake": 0, "queue_max_depth": {},
+        "echo_count": 0, "stale_chunk_received": 0, "stale_chunk_played": 0,
+        "stale_purged_frames": 0, "stale_rejected_on_wake": 0, "queue_max_depth": {},
     }
     last_speech_end: int | None = None
     max_gen = 0  # 目前出现过的最大 generation_id
     playing: set[int] = set()  # 已 playback_started、尚未终止的 generation（含暂停中）
     audible = False  # 此刻是否有声音在播（暂停时为 False）
-    last_utterance: str | None = None  # 最近一个 speech / noise 段的类型
+    last_utterance: str | None = None  # 最近一个 speech / noise / echo 段的类型
     cancelled_at: dict[int, int] = {}  # generation → 非 duplicate 的 generation_cancelled 序号
 
     for i, e in enumerate(events):
@@ -38,7 +38,7 @@ def compute_metrics(events: list[dict]) -> dict:
         if et == SCRIPT_MARKER:
             if _is_marker(e, "speech", "end"):
                 last_speech_end = ts
-            if p.get("phase") == "start" and p.get("segment") in ("speech", "noise"):
+            if p.get("phase") == "start" and p.get("segment") in ("speech", "noise", "echo"):
                 last_utterance = p["segment"]
             if _is_marker(e, "speech", "start") and playing:
                 _barge_in_onset(events, i, audible, m)
@@ -67,8 +67,10 @@ def compute_metrics(events: list[dict]) -> dict:
             m["false_pause_count"] += 1
             m["pause_total_ms"] += p.get("paused_ms", 0)
         elif et == BARGEIN_DECISION:
-            if p.get("result") == "interrupt" and last_utterance == "noise":
+            if p.get("result") == "interrupt" and last_utterance in ("noise", "echo"):
                 m["false_interruption_count"] += 1
+            elif p.get("result") == "echo":
+                m["echo_count"] += 1
         elif et == GENERATION_CANCELLED:
             if not p.get("duplicate") and e["generation_id"] not in cancelled_at:
                 cancelled_at[e["generation_id"]] = e["sequence_number"]
@@ -98,11 +100,11 @@ def _barge_in_onset(events: list[dict], i: int, audible: bool, m: dict) -> None:
     start = _first_after(events, i, lambda x: x["event_type"] == SPEECH_START)
     if start is not None:
         m["speech_start_detection_ms"].append(start["timestamp"] - onset)
-    # 停播只与本段配对：须在本段结束（end marker）之前、且在下一个 speech/noise 段开始之前
+    # 停播只与本段配对：须在本段结束（end marker）之前、且在下一个 speech/noise/echo 段开始之前
     end = _first_after(events, i, lambda x: _is_marker(x, "speech", "end"))
     nxt = _first_after(events, i, lambda x: x["event_type"] == SCRIPT_MARKER
                        and x["payload"].get("phase") == "start"
-                       and x["payload"].get("segment") in ("speech", "noise"))
+                       and x["payload"].get("segment") in ("speech", "noise", "echo"))
     limit = min(x["sequence_number"] for x in (end, nxt, events[-1]) if x is not None)
     stop = _first_after(events, i, lambda x: x["event_type"] == PLAYBACK_STOPPED
                         and x["payload"].get("reason") == PAUSED)

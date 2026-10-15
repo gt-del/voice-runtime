@@ -25,6 +25,13 @@ class Noise:
 
 
 @dataclass
+class Echo:
+    """机器人自己的声音漏进麦克风 ms 毫秒（短时回声）。能量与语音相当；Runtime 只看到普通的音频帧，
+    识别成什么词由假 ASR 按这段时间里扬声器实际播出的内容决定（providers/fake.py 的 EchoPath）。"""
+    ms: int
+
+
+@dataclass
 class AfterEvent:
     event_type: str
     delay_ms: int
@@ -91,6 +98,8 @@ class ScriptedAudioSource:
             elif isinstance(seg, Noise):
                 gen = self._segment(index, "noise", "", tone(FRAME_MS, seg.amplitude),
                                     -(-seg.ms // FRAME_MS))
+            elif isinstance(seg, Echo):
+                gen = self._segment(index, "echo", "", tone(FRAME_MS, 3000), -(-seg.ms // FRAME_MS))
             elif isinstance(seg, Silence):
                 gen = self._segment(index, "silence", "", silence, -(-seg.ms // FRAME_MS))
             elif isinstance(seg, AfterEvent):

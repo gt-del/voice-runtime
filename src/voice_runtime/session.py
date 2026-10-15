@@ -15,7 +15,7 @@ from voice_runtime.events import (ASR_FINAL, ASR_PARTIAL, AUDIO_FRAME, BARGEIN_D
                                   SPECULATION_ADOPTED, SPECULATION_DISCARDED, SPECULATION_STARTED,
                                   SPEECH_END, SPEECH_START, STALE_EVENT_DROPPED, TURN_STARTED,
                                   EventLog)
-from voice_runtime.gate import GateResult, Utterance, decide
+from voice_runtime.gate import ECHO_LOOKBACK_MS, GateResult, Utterance, decide
 from voice_runtime.generation import Generation, GenerationSupervisor, GenState
 from voice_runtime.playback import AudioSink, Player
 from voice_runtime.providers.base import (ASR, LLM, TTS, VAD, AsrEvent, BackchannelScorer,
@@ -557,8 +557,10 @@ class Session:
         self._decide_task = self._spawn(self._decide(g, now, late), "session/gate-decide")
 
     async def _decide(self, g: _GateUtterance, now: int, late: bool) -> None:
+        # 回声比对窗口来自 Playback Truth：这段话开口前 ECHO_LOOKBACK_MS 起，机器人实际播出的词
+        played = self._ledger_of(g.generation_id).played_words_since(g.u.start_ms - ECHO_LOOKBACK_MS)
         try:
-            result, rule, details = await decide(g.u, now, self.cfg, self._p.backchannel)
+            result, rule, details = await decide(g.u, now, self.cfg, self._p.backchannel, played)
         finally:
             self._decide_task = None
         if late:
@@ -579,12 +581,13 @@ class Session:
         gen = self._gens[g.generation_id]
         self._log.emit(BARGEIN_DECISION, turn_id=gen.turn_id, generation_id=gen.id,
                        result=str(result), rule=rule, utterance_id=g.u.utterance_id,
-                       words=details["words"], scores=details["scores"],
+                       words=details["words"], echo_words=details["echo_words"],
+                       scores=details["scores"],
                        scorer=details.get("scorer"), late_interrupt=late)
         if result is GateResult.INTERRUPT:
             self._interrupt(gen)
             return
-        # 搭腔 / 噪声：丢弃转写，从暂停的样本位继续
+        # 搭腔 / 噪声 / 回声：丢弃转写，从暂停的样本位继续
         g.result = result
         self._decided.append(g)
         self._gate = None

@@ -215,7 +215,7 @@ def test_heard_text_excludes_partially_played_word():
                                      [WordTiming("Sure,", 0, 100), WordTiming("booking", 100, 220)]))
     led.on_enqueued(0, 11)
     for i in range(7):
-        led.on_played(0, i)
+        led.on_played(0, i, i * 20)
     s = led.summary()
     assert s["heard_text"] == "Sure,"
     assert s["heard_range"] == [0, 5]
@@ -309,7 +309,7 @@ def _sure_booking_ledger(played_frames: int) -> TruthLedger:
                                      [WordTiming("Sure,", 0, 100), WordTiming("booking", 100, 220)]))
     led.on_enqueued(0, 11)
     for i in range(played_frames):
-        led.on_played(0, i)
+        led.on_played(0, i, i * 20)
     return led
 
 
@@ -328,7 +328,7 @@ def test_heard_scan_stops_at_word_missing_from_text():
                                      [WordTiming("Sure,", 0, 100), WordTiming("cooking", 100, 220)]))
     led.on_enqueued(0, 11)
     for i in range(11):
-        led.on_played(0, i)
+        led.on_played(0, i, i * 20)
     s = led.summary()
     assert (s["heard_text"], s["heard_range"]) == ("Sure,", [0, 5])
 
@@ -375,3 +375,17 @@ def test_on_dropped_never_overrides_played_frames():
     led = _sure_booking_ledger(3)
     led.on_dropped(0, "late", "2")
     assert led.summary()["chunks"][0]["state"] == "played"
+
+
+def test_played_words_since_uses_write_time_of_each_word():
+    led = TruthLedger(1)
+    led.on_generated("Sure, booking now.")
+    led.on_synthesized(0, AudioChunk(bytes(260 * 32), (0, 18), [
+        WordTiming("Sure,", 40, 140), WordTiming("booking", 140, 260)]))  # 开头 40ms 底噪
+    led.on_enqueued(0, 13)
+    for i in range(9):  # 0..8 帧：底噪 2 帧，"Sure," 5 帧（写于 40..120），"booking" 2 帧（140、160）
+        led.on_played(0, i, 1000 + i * 20)
+    assert led.played_words_since(0) == ["Sure,", "booking"]
+    assert led.played_words_since(1000 + 120) == ["Sure,", "booking"]  # "Sure," 最后一帧写于 1120
+    assert led.played_words_since(1000 + 140) == ["booking"]
+    assert led.played_words_since(1000 + 180) == []

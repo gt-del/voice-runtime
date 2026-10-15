@@ -5,9 +5,11 @@ import re
 from collections.abc import AsyncIterator, Callable
 from dataclasses import dataclass
 
-from voice_runtime.audio import AudioChunk, Frame, WordTiming, rms, tone, word_duration_ms
+from voice_runtime.audio import (FRAME_MS, FRAME_SAMPLES, AudioChunk, Frame, WordTiming, rms, tone,
+                                 word_duration_ms)
+from voice_runtime.events import LLM_CHUNK, TTS_CHUNK, EventLog
 from voice_runtime.providers.base import AsrEvent, AsrWord, TurnScore
-from voice_runtime.script import Noise, Speech
+from voice_runtime.script import Echo, Noise, Speech
 from voice_runtime.text import PUNCT, normalize_text
 from voice_runtime.vloop import now_ms
 
@@ -302,11 +304,50 @@ class FakeTTS:
         return _TtsStream(self._faults, text_stream, self._lead, self._amp)
 
 
+class EchoPath:
+    """仿真的声学回路，只属于假实现（Session / 门禁不用它）：扬声器播出的声音漏进麦克风。
+    按假 TTS 的合成方式（第一个 chunk 可能带开头底噪，之后每个词 word_duration_ms 的音）从 llm_chunk /
+    tts_chunk 事件还原每个 generation 每一帧放的是哪个词，再按 FakeSink 的写入时刻查出一段时间里播出的词。"""
+
+    def __init__(self, log: EventLog, sink):
+        self._sink = sink  # 只读 sink.writes：[(写入时刻, generation_id, frame_index)]
+        self._text: dict[int, str] = {}
+        self._frames: dict[int, list[tuple[int, str] | None]] = {}  # gen → 每帧的 (词序号, 词)
+        log.add_listener(self._on_event)
+
+    def _on_event(self, e: dict) -> None:
+        gid, p = e["generation_id"], e["payload"]
+        if e["event_type"] == LLM_CHUNK:
+            self._text[gid] = self._text.get(gid, "") + p["text"]
+        elif e["event_type"] == TTS_CHUNK:
+            start, end = p["text_range"]
+            words = self._text.get(gid, "")[start:end].split()
+            frames = self._frames.setdefault(gid, [])
+            n = -(-p["samples"] // FRAME_SAMPLES)
+            frames += [None] * (n - sum(word_duration_ms(w) for w in words) // FRAME_MS)  # 底噪
+            for w in words:
+                frames += [(len(frames), w)] * (word_duration_ms(w) // FRAME_MS)
+
+    def words(self, start_ms: int, end_ms: int) -> list[str]:
+        """[start_ms, end_ms) 内扬声器实际播出的词（与这段时间有重叠就算），按播放顺序。"""
+        out, last = [], None
+        for t, gid, i in self._sink.writes:
+            if t + FRAME_MS > start_ms and t < end_ms:
+                w = self._frames[gid][i]
+                if w is not None and (gid, w[0]) != last:
+                    last = (gid, w[0])
+                    out.append(w[1])
+        return out
+
+
 class FakeASR:
     def __init__(self, segments: list, *, partial_latency_ms: int = 100,
                  final_latency_ms: int = 150, jitter_ms: int = 20, seed: int = 1,
-                 hang_at_ms: int | None = None):
-        self._script = [s for s in segments if isinstance(s, (Speech, Noise))]
+                 hang_at_ms: int | None = None,
+                 echo: Callable[[int, int], list[str]] | None = None):
+        """echo：Echo 片段的"声学"——返回一段时间里扬声器播出的词（EchoPath.words）。"""
+        self._script = [s for s in segments if isinstance(s, (Speech, Noise, Echo))]
+        self._echo = echo
         self._partial = partial_latency_ms
         self._final = final_latency_ms
         self._jitter_ms = jitter_ms
@@ -329,11 +370,24 @@ class FakeASR:
 
     def _final_event(self, k: int, start: int, end: int, floor: int) -> tuple[int, AsrEvent]:
         seg, t, words = self._script[k], start, []
+        if isinstance(seg, Echo):  # 回声被"识别"成这段时间里扬声器播出的词
+            heard = self._echo(start, end)
+            return max(end + self._final + self._jitter(), floor), AsrEvent(
+                "final", " ".join(heard), tuple(AsrWord(w, start, end) for w in heard), k, start, end)
         for w in (seg.text.split() if isinstance(seg, Speech) else []):
             words.append(AsrWord(w, t, t + word_duration_ms(w)))
             t += word_duration_ms(w)
         text = seg.text if isinstance(seg, Speech) else ""
         return max(end + self._final + self._jitter(), floor), AsrEvent("final", text, tuple(words), k, start, end)
+
+    def _echo_partial(self, k: int, start: int, now: int, heard: int) -> tuple[int, AsrEvent] | None:
+        """回声片段进行中：到 now 为止扬声器又多放出了词，就出一条 partial。"""
+        ws = self._echo(start, now)
+        if len(ws) <= heard:
+            return None
+        text = " ".join(w.translate(PUNCT) for w in ws)
+        return now + self._partial + self._jitter(), AsrEvent(
+            "partial", text, tuple(AsrWord(w, start, now) for w in ws), k, start, now)
 
     async def run(self, frames: AsyncIterator[Frame]) -> AsyncIterator[AsrEvent]:
         due: list[tuple[int, AsrEvent]] = []
@@ -344,12 +398,19 @@ class FakeASR:
             loud = rms(frame.pcm) > ENERGY_RMS
             if loud and seg_start is None:
                 k, seg_start = k + 1, frame.ts_ms
-                parts = self._partials(k, seg_start)
+                parts = [] if isinstance(self._script[k], Echo) else self._partials(k, seg_start)
                 due += parts
                 floor = max((d for d, _ in parts), default=0)
+                heard = 0  # 回声片段已出 partial 的词数
             elif not loud and seg_start is not None:
                 due.append(self._final_event(k, seg_start, frame.ts_ms, floor))
                 seg_start = None
+            if loud and isinstance(self._script[k], Echo):
+                part = self._echo_partial(k, seg_start, frame.ts_ms, heard)
+                if part is not None:
+                    due.append(part)
+                    heard = len(part[1].words)
+                    floor = max(floor, part[0])
             due.sort(key=lambda d: d[0])  # 稳定排序：同一到期时刻保持产生顺序
             while due and due[0][0] <= frame.ts_ms:
                 yield due.pop(0)[1]

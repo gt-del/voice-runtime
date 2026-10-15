@@ -1,8 +1,8 @@
-"""场景定义（测试和 run_scenarios 共用）：A / A' / B / C / D / E（设计 §12）。"""
+"""场景定义（测试和 run_scenarios 共用）：A / A' / B / C / D / E（设计 §12），以及 F（回声，§9.4）。"""
 from dataclasses import dataclass, field
 
 from voice_runtime.providers.fake import StreamFaults
-from voice_runtime.script import AfterEvent, Noise, Silence, Speech
+from voice_runtime.script import AfterEvent, Echo, Noise, Silence, Speech
 
 
 @dataclass
@@ -85,3 +85,10 @@ def scenario_e() -> Scenario:
     tts = StreamFaults(200, 40, late_after_cancel_ms=(50, 1500))
     return _barge_in("E", tts, {"cancel_grace_ms": 2000, "close_grace_ms": 3000,
                                 "speculation_enabled": False})
+
+
+def scenario_f() -> Scenario:
+    """F：机器人说话 1s 后，它自己的声音漏进麦克风 200ms（短时回声）。"""
+    segs = [Speech(REQUEST), AfterEvent("playback_started", 1000), Echo(200)]
+    return Scenario(name="F", segments=segs, llm_replies={}, default_reply=LONG_REPLY,
+                    llm_faults=LLM, tts_faults=TTS, close_after=("context_committed", 2, SETTLE_MS))

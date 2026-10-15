@@ -130,3 +130,49 @@ def test_scorer_detail_distinguishes_fallback():
     assert f(FakeBackchannelScorer()) == "ok"
     assert f(FakeBackchannelScorer(delay_ms=CFG.backchannel_budget_ms + 50)) == "timeout"
     assert f(FakeBackchannelScorer(fail=True)) == "error"
+
+
+PLAYED = ["booked", "for", "Thursday", "at"]  # 机器人这段时间实际播出的词（Playback Truth）
+
+
+def decide_played(u, now, played=PLAYED):
+    return run(decide(u, now, CFG, FakeBackchannelScorer(), played))
+
+
+def test_all_echo_final_is_echo():
+    r, rule, d = decide_played(utt("for Thursday", "for Thursday", 300), 450)
+    assert (r, rule) == (GateResult.ECHO, "echo_match")
+    assert d["words"] == [] and d["echo_words"] == ["for", "thursday"]
+
+
+def test_echo_plus_user_words_decided_on_user_words():
+    r, rule, d = decide_played(utt("Thursday make it", "Thursday make it Friday.", 300), 450)
+    assert (r, rule) == (GateResult.INTERRUPT, "default_interrupt")
+    assert d["words"] == ["make", "it", "friday"] and d["echo_words"] == ["thursday"]
+    r, rule, d = decide_played(utt("Thursday yeah", "Thursday, yeah.", 300), 450)
+    assert (r, rule, d["words"]) == (GateResult.BACKCHANNEL, "backchannel", ["yeah"])
+
+
+def test_echo_tokens_in_partial_do_not_trigger_early_interrupt():
+    r, rule, d = decide_played(utt("Thursday at"), 100)
+    assert (r, rule) == (GateResult.PENDING, "pending")
+    assert d["words"] == [] and d["echo_words"] == ["thursday", "at"]
+
+
+def test_echoed_command_word_does_not_interrupt():
+    played = ["Please", "stop", "here."]
+    assert decide_played(utt("stop"), 100, played)[:2] == (GateResult.PENDING, "pending")
+    assert decide_played(utt("stop", "Stop.", 300), 450, played)[:2] == \
+        (GateResult.ECHO, "echo_match")
+    # 用户自己说的 stop（不在播放窗口里）照常打断
+    assert decide_played(utt("stop"), 100)[:2] == (GateResult.INTERRUPT, "command_word")
+
+
+def test_echo_match_follows_played_order():
+    # 窗口里是 "for Thursday"：倒序的 "Thursday for" 只有第一个词能按顺序对上
+    r, _, d = decide_played(utt("Thursday for", "Thursday for", 300), 450)
+    assert d["echo_words"] == ["thursday"] and d["words"] == ["for"] and r is GateResult.INTERRUPT
+
+
+def test_empty_final_stays_noise_with_played_window():
+    assert decide_played(utt("", "", 160), 320)[:2] == (GateResult.NOISE, "noise_empty_final")

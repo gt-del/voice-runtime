@@ -4,11 +4,11 @@ import sys
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parent.parent / "scripts" / "run_scenarios.py"
-NAMES = ["A_prime", "A", "B", "C", "D", "E"]
+NAMES = ["A_prime", "A", "B", "C", "D", "E", "F"]
 METRIC_KEYS = {
     "endpoint_latency_ms", "turn_end_to_first_audio_ms", "speech_start_detection_ms",
     "playback_stop_ms", "interruption_decision_ms", "overlap_ms", "false_interruption_count",
-    "false_pause_count", "pause_total_ms", "stale_chunk_received", "stale_chunk_played",
+    "false_pause_count", "pause_total_ms", "echo_count", "stale_chunk_received", "stale_chunk_played",
     "stale_purged_frames", "stale_rejected_on_wake", "queue_max_depth",
 }
 

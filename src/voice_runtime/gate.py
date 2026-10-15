@@ -1,5 +1,6 @@
-"""BargeInGate 判定逻辑（设计 §9.1）：纯函数式规则，不含状态机与播放控制。"""
+"""BargeInGate 判定逻辑（设计 §9.1、§9.4）：纯函数式规则，不含状态机与播放控制。"""
 import asyncio
+from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import StrEnum
 
@@ -12,6 +13,7 @@ COMMAND_WORDS = ("stop", "wait", "no", "hold on")
 BACKCHANNELS = ("uh-huh", "mm-hmm", "yeah", "yep", "right", "okay", "sure", "i see", "got it")
 
 SLICE_BYTES = SAMPLE_RATE * 80 // 1000 * 2  # 80ms PCM16 = 1280 samples = 2560 字节
+ECHO_LOOKBACK_MS = 500  # 回声比对窗口：这段话开口前 500ms 到现在，机器人实际播出的词
 
 _COMMANDS = tuple(tuple(normalize_text(c).split()) for c in COMMAND_WORDS)
 _BACKCHANNELS = tuple(tuple(normalize_text(b).split()) for b in BACKCHANNELS)
@@ -22,6 +24,7 @@ class GateResult(StrEnum):
     INTERRUPT = "interrupt"
     BACKCHANNEL = "backchannel"
     NOISE = "noise"
+    ECHO = "echo"
 
 
 @dataclass
@@ -39,6 +42,18 @@ class Utterance:
         room = cap - len(self.audio)
         if room > 0:
             self.audio += pcm[:room]
+
+
+def _split_echo(tokens: list[str], played: list[str]) -> tuple[list[str], list[str]]:
+    """按顺序与播放窗口比对：能依次在窗口中找到的 token 是回声，其余是用户的词。返回 (用户词, 回声词)。"""
+    user, echo, j = [], [], 0
+    for t in tokens:
+        if t in played[j:]:
+            j = played.index(t, j) + 1
+            echo.append(t)
+        else:
+            user.append(t)
+    return user, echo
 
 
 def _has_command(tokens: list[str]) -> bool:
@@ -70,21 +85,28 @@ def _is_backchannel_compatible(tokens: list[str]) -> bool:
     return False
 
 
-async def decide(u: Utterance, now_ms: int, cfg: RuntimeConfig,
-                 scorer: BackchannelScorer) -> tuple[GateResult, str, dict]:
+async def decide(u: Utterance, now_ms: int, cfg: RuntimeConfig, scorer: BackchannelScorer,
+                 played: Sequence[str] = ()) -> tuple[GateResult, str, dict]:
+    """played：机器人最近实际播出的词（Playback Truth）。与之按顺序吻合的词是回声，不算用户的词。"""
+    window = normalize_text(" ".join(played)).split()
     has_final = u.final_text is not None
-    final_tokens = normalize_text(u.final_text).split() if has_final else []
-    partial_tokens = normalize_text(u.partial_text).split()
+    final_all = normalize_text(u.final_text).split() if has_final else []
+    final_tokens, final_echo = _split_echo(final_all, window)
+    partial_tokens, partial_echo = _split_echo(normalize_text(u.partial_text).split(), window)
     tokens = final_tokens if has_final else partial_tokens
-    details: dict = {"words": tokens, "scores": None}
+    details: dict = {"words": tokens, "echo_words": final_echo if has_final else partial_echo,
+                     "scores": None}
 
-    # 1. 指令词（partial 或 final 中的完整词）
+    # 1. 指令词（partial 或 final 中的完整词；回声里的指令词不算）
     if _has_command(partial_tokens) or _has_command(final_tokens):
         return GateResult.INTERRUPT, "command_word", details
 
     # 2. 噪声（先于搭腔，空文本永远不会被判为搭腔）
-    if has_final and not final_tokens:
+    if has_final and not final_all:
         return GateResult.NOISE, "noise_empty_final", details
+    # 回声：final 的词全部与播放窗口吻合（§9.4）
+    if has_final and not final_tokens:
+        return GateResult.ECHO, "echo_match", details
     if not has_final and u.vad_ended_at_ms is not None:
         elapsed = now_ms - u.vad_ended_at_ms
         if elapsed >= cfg.noise_timeout_ms:

@@ -29,6 +29,7 @@ class TruthLedger:
         self.generation_id = generation_id
         self._full_text = ""
         self._chunks: dict[int, _Chunk] = {}
+        self._audible: list[list] = []  # 按播放顺序：[chunk_id, 词序号, 词, 最后一帧写入时刻]
 
     def on_generated(self, text: str) -> None:
         self._full_text += text
@@ -39,8 +40,21 @@ class TruthLedger:
     def on_enqueued(self, chunk_id: int, frames: int) -> None:
         self._chunks[chunk_id].enqueued_frames += frames
 
-    def on_played(self, chunk_id: int, frame_index: int) -> None:
-        self._chunks[chunk_id].played_frames += 1
+    def on_played(self, chunk_id: int, frame_index: int, at_ms: int) -> None:
+        c = self._chunks[chunk_id]
+        pos = c.played_frames * FRAME_MS  # 这一帧在 chunk 内的起点
+        c.played_frames += 1
+        i = next((i for i, w in enumerate(c.word_timings) if w.start_ms <= pos < w.end_ms), None)
+        if i is None:  # 开头底噪
+            return
+        if self._audible and self._audible[-1][:2] == [chunk_id, i]:
+            self._audible[-1][3] = at_ms
+        else:
+            self._audible.append([chunk_id, i, c.word_timings[i].word, at_ms])
+
+    def played_words_since(self, since_ms: int) -> list[str]:
+        """播放时间与 [since_ms, 现在] 有重叠的词，按播放顺序（门禁据此识别回声，§9.4）。"""
+        return [w for _, _, w, last in self._audible if last + FRAME_MS > since_ms]
 
     def on_dropped(self, chunk_id: int, reason: str, gate: str) -> None:
         self._chunks[chunk_id].dropped = (reason, gate)

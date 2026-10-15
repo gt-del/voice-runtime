@@ -8,8 +8,8 @@ from voice_runtime.endpointing.rules import RuleTurnScorer
 from voice_runtime.events import EventLog
 from voice_runtime.metrics import compute_metrics
 from voice_runtime.playback import FakeSink
-from voice_runtime.providers.fake import (FakeASR, FakeBackchannelScorer, FakeLLM, FakeTTS,
-                                          FakeVAD)
+from voice_runtime.providers.fake import (EchoPath, FakeASR, FakeBackchannelScorer, FakeLLM,
+                                          FakeTTS, FakeVAD)
 from voice_runtime.scenarios import Scenario
 from voice_runtime.script import ScriptedAudioSource
 from voice_runtime.session import CloseReason, Providers, Session, SessionState
@@ -28,16 +28,17 @@ class ScenarioResult:
 
 def build_session(sc: Scenario, cfg: RuntimeConfig, log: EventLog, *, l1=None, l2=None) -> tuple[Session, FakeSink]:
     source = ScriptedAudioSource(sc.segments, log)
+    sink = FakeSink()
+    echo = EchoPath(log, sink)  # 仿真声学：只给假 ASR 用
     providers = Providers(
         vad=FakeVAD(),
-        asr=FakeASR(sc.segments, **sc.asr_kwargs),
+        asr=FakeASR(sc.segments, echo=echo.words, **sc.asr_kwargs),
         llm=FakeLLM(sc.llm_replies, sc.default_reply, sc.llm_faults),
         tts=FakeTTS(sc.tts_faults, leading_noise_ms=sc.tts_leading_noise_ms),
         l1=l1 or RuleTurnScorer(),
         l2=l2,
         backchannel=FakeBackchannelScorer(),
     )
-    sink = FakeSink()
     return Session(cfg, providers, source, sink, log), sink
 
 
