@@ -16,8 +16,8 @@
 | 暂停 | `#206 @2440` `playback_stopped(paused_pending_decision, position_samples=20160)` | 同一 tick 暂停，停播延迟 40ms（目标 ≤ 250ms）。20160 样本 = 1260ms；`#205` 补记了最后一段进度 `[2, 60, 62]` |
 | 暂停中 | `#218 @2605` gen 2 的 `tts_chunk 10` 仍在产出（`#219` 入队后 depth=65） | 暂停不取消上游，TTS 继续往 playback 队列写，但门控是 paused，一帧都没播 |
 | 识别 | `#221 @2620` `asr_partial "Stop"` | "Stop" 在 2500 说完，加上 partial 延迟后到达 |
-| 判定 | `#223 @2640` `bargein_decision(result=interrupt, rule=command_word, words=["stop"], utterance_id=1)` | 指令词直接判为打断，不等整句说完。判定延迟 240ms |
-| 停止 + 已听文本 | `#224 @2640` `playback_stopped(interrupted)` | `playback_truth`：已播 1260ms，`heard_text` = "Sure, I can help with that. Your table for two is booked for"。chunk 5（" for Thursday"）只播了 2560/3520 样本，"Thursday" 播到一半，按"半个词算没听到"处理；chunk 5 的剩余帧和 chunk 6～10 还在 playback 队列里，快照中已记为 `dropped`（随后被 purge），`played_samples` 照实保留 |
+| 判定 | `#223 @2640` `bargein_decision(result=interrupt, rule=command_word, words=["stop"], echo_words=[], utterance_id=1)` | 指令词直接判为打断，不等整句说完。判定延迟 240ms。"stop" 不在机器人刚播出的文字里，所以不是回声（`echo_words` 为空） |
+| 停止 + 已听文本 | `#224 @2640` `playback_stopped(interrupted)` | `playback_truth`：已播 1260ms，`heard_text` = "Sure, I can help with that. Your table for two is booked for"。chunk 5（" for Thursday"）只播了 2560/3520 样本，"Thursday" 播到一半，按"半个词算没听到"处理；chunk 5 播过一部分，状态仍是 `played`，标 `truncated=true`，`played_samples=2560` 照实保留，它的剩余帧随后被 purge；chunk 6～10 一帧没播，快照中已记为 `dropped`，并带 `reason=barge_in`、`gate=purge` |
 | 作废 | `#225 @2640` `generation_cancelled(gen 2, reason=barge_in)` | |
 | purge | `#226 @2640` `stale_event_dropped(gate=purge, frames=65)` | 同步清掉 gen 2 留在 playback 队列里的 65 帧 |
 | 上下文 | `#227`、`#228` `context_committed` | 旧一轮的用户文本，以及助手**实际听到**的部分（`interrupted=true`），不是完整生成文本 |

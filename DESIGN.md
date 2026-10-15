@@ -29,7 +29,7 @@ Session 是中心协调者：启动 / 作废 generation、切换 `active_generat
 
 **播放器门控**：`idle / held / playing / paused / closed` 一套机制。预生成未放行时是 `held`，门禁暂停时是 `paused`；只有 `playing` 时才取帧，所以门控一变，20ms 内就没有声音。
 
-**ID**：`session_id`（构造时）；`turn_id`（LISTENING 下第一个 `speech_start`，或门禁确认打断时 +1，每次写一条 `turn_started`，`cause` 为 `speech_start / barge_in / carry_over`）；`generation_id`（每次启动 LLM→TTS，包括预生成，全 session 单调递增、不复用）；`utterance_id`（门禁每评估一段疑似语音分配一个）；`silence_epoch` / `text_version`（打分请求带上，返回时任一变化即作废，记 `stale_event_dropped(gate=endpoint)`）。事件里的 `turn_id` / `generation_id` 取数据自身携带的值，所以迟到事件在日志里仍归属旧 generation。
+**ID**：`session_id`（构造时）；`turn_id`（LISTENING 下第一个 `speech_start`，或门禁确认打断时 +1，每次写一条 `turn_started`，`cause` 为 `speech_start / barge_in / carry_over`；`barge_in` 只用于门禁确认的真打断，回复因失败等其他原因结束、门禁里那段话接续成下一轮时记 `carry_over`）；`generation_id`（每次启动 LLM→TTS，包括预生成，全 session 单调递增、不复用）；`utterance_id`（门禁每评估一段疑似语音分配一个）；`silence_epoch` / `text_version`（打分请求带上，返回时任一变化即作废，记 `stale_event_dropped(gate=endpoint)`）。事件里的 `turn_id` / `generation_id` 取数据自身携带的值，所以迟到事件在日志里仍归属旧 generation。
 
 **事件**：需求要求的 15 类全部覆盖，另加 `script_marker`、`turn_started`、`turn_score`（命中规则、p、置信度）、`speculation_*`、`bargein_decision`、`playback_resumed/underrun`、`context_committed`、`queue_overflow`、`provider_timeout`、`task_failed`、`generation_failed`、`cancel_grace_exceeded`、`close_timeout`。每条被拦下的数据都写 `stale_event_dropped`，payload 带 `gate`（`1/2/3/purge/finished/session_closed/endpoint`）和 `phase`（`late/rejected_on_wake/purge`）。
 
@@ -51,7 +51,7 @@ Session.run() ── TaskGroup：session/audio_pump、session/asr_consumer、ses
 ## 4. Playback Truth
 
 - **唯一事实来源**：播放器经过闸③写入 AudioSink 的帧。`playback_progress` 每 100ms 记录这段时间写入的帧区间 `[gen, 首帧, 末帧]`，停止时补记剩余区间，每一帧写入都有据可查。
-- chunk 状态：`generated → synthesized → enqueued → played`，终态 `dropped(reason, gate)`。invalidate 清除的已入队帧所属 chunk 记为 `dropped(reason, gate=purge)`，在 `playback_stopped` 的快照之前记账，所以快照与随后的 purge 一致。每个 chunk 关联文本范围（字符偏移）、样本数、裁剪后的词时间戳、是否入队、实际播放样本数、是否截断。
+- chunk 状态：`generated → synthesized → enqueued → played`，终态 `dropped(reason, gate)`。停播 / 作废时，已入队但**一帧都没播**的 chunk 记为 `dropped(reason, gate=purge)`（快照里该 chunk 带 `reason`、`gate`）；**播过一部分**的 chunk 仍是 `played`，标 `truncated=true`，`played_samples` 照实保留，绝不记为 dropped。记账在 `playback_stopped` 的快照之前完成，所以快照与随后的 purge 一致（C 中 chunk 5 播了 2560/3520 样本 → `played` + `truncated`；chunk 6～10 → `dropped(barge_in, purge)`）。每个 chunk 关联文本范围（字符偏移）、样本数、裁剪后的词时间戳、是否入队、实际播放样本数、是否截断。
 - generation 结束时 `playback_stopped.payload.playback_truth` 给出完整生成文本、入队文本、听到的文本范围与内容、实际播放时长。
 - **词中截断**：只有结束时间 ≤ 已播位置的词算听到，播了一半的词算没听到（保守）。
 - 上下文（`deque(maxlen=20)`）只写入听到的部分，outcome 不是 `completed`（被打断、截断、失败）的都标注 `(interrupted)`；一个字都没播出时只写用户文本。
@@ -76,7 +76,7 @@ Session.run() ── TaskGroup：session/audio_pump、session/asr_consumer、ses
 
 ## 6. 打断门禁与队列
 
-- **门禁**：PLAYING 时 VAD 连续 3 帧语音 → 暂停（`paused_pending_decision`）。判定顺序：partial 出现完整指令词（stop / wait / no / hold on）→ 打断；final 为空或 VAD 结束后 400ms 仍无 final → 噪声；非空 final 只由附和词组成（uh-huh / mm-hmm / yeah / yep / right / okay / sure / I see / got it）且附和评分 ≥ 0.5（80ms 切片取最大，评分器超时 / 失败按搭腔）→ 搭腔；其余默认打断（final 到达，或 partial 已有 ≥ 2 个词且不可能是附和词组的前缀）。噪声 / 搭腔从暂停样本位继续播放；判为噪声后又来了同一段的词，会重新判定（`late_interrupt`）。
+- **门禁**：PLAYING 时 VAD 连续 3 帧语音 → 暂停（`paused_pending_decision`）。判定顺序：partial 出现完整指令词（stop / wait / no / hold on）→ 打断；final 为空或 VAD 结束后 400ms 仍无 final → 噪声；非空 final 只由附和词组成（uh-huh / mm-hmm / yeah / yep / right / okay / sure / I see / got it）且附和评分 ≥ 0.5（80ms 切片取最大，评分器超时 / 失败按搭腔）→ 搭腔；其余默认打断（final 到达，或 partial 已有 ≥ 2 个词且不可能是附和词组的前缀）。以上规则只看**用户的词**：先剔除与机器人刚播出的文字吻合的回声词（§8 回声），final 的词全是回声 → 回声（`echo_match`）。噪声 / 搭腔 / 回声从暂停样本位继续播放；判为噪声后又来了同一段的词，会重新判定（`late_interrupt`）。
 - **四种队列情况**：TTS 快于播放器 → playback 队列满时**阻塞 TTS**（背压，见 Q5）；ASR 慢于输入 → `asr_in` 满时**丢最旧帧**并记 `queue_overflow`（麦克风是实时的，不能阻塞）；Provider 长时间无返回 → 首包超时（LLM 2000 / TTS 1000，TTS 从第一段文本送入时起算）作废，chunk 间隔超时 1000ms 走 finish，阻塞在下游 put 的时间不计入；关闭时残留 → 丢弃并按队列记录在 `session_closed.residual`。
 
 ## 7. 场景补充说明
@@ -89,6 +89,8 @@ Session.run() ── TaskGroup：session/audio_pump、session/asr_consumer、ses
 
 **E（cancel 后迟到 chunk）**：不假设 `cancel()` 后上游立刻停：作废时先同步 purge 和切换身份，再发 cancel，桥接任务继续排空上游并逐个过闸。假 TTS 在 cancel（2720）后 +50ms 吐出 chunk 11，被闸②拦下（`phase=late`，`#231`）；+1500ms 的 chunk 12 在 4220 到达，正是新回复 gen 2 在播的时候（`playback_started` 3740 `#297` → `playback_stopped(completed)` 5080 `#405`），同样在闸②被拦下（`#344`），一帧都没写进 sink。`stale_chunk_received=2`、`stale_chunk_played=0`，`session_closed` 在 5380（`overdue_task_count=0`）。E 调大了 `cancel_grace_ms=2000`、`close_grace_ms=3000`（保证 +1500ms 的 chunk 到达前看门狗不取消），并**关闭了预生成**：假 TTS 对每个被取消的流都会吐迟到 chunk，被替换的预生成也会贡献迟到项，E 只想隔离"被打断的那个 generation"（所以 E 的 turn-end→first-audio 是 540 而不是 460）。
 
+**F（短时回声）**：机器人说话 1s 后，它自己的声音漏进麦克风 200ms（`Echo(200)`，能量与语音相当）。Runtime 只看到普通音频帧：回声 2200 开始（F trace `#180`），VAD 3 帧确认后 2240 暂停（`#186`），和真实开口一样；假 ASR 把这段音频"听"成扬声器当时实际播出的词 "booked"（partial `#196`、final `#217`）。门禁从 Playback Truth 取"开口前 500ms 到现在"机器人播出的词，"booked" 能对上 → `bargein_decision(result=echo, rule=echo_match, words=[], echo_words=["booked"])`（`#219`），2600 从暂停样本位恢复（`#220`，`paused_ms=360` = 暂停后剩余回声 160 + 回声结束到 final 约 180 + 1 tick）。回复完整播完（`#403`），上下文里只有用户原话和完整回复，回声词没有成为用户输入。`echo_count=1`、`false_pause_count=1`、`false_interruption_count=0`。如果不剔除回声，"booked" 这个非附和词的 final 会被默认判为打断。
+
 ## 8. 取舍与已知局限
 
 - **TTS 开头底噪裁剪**：能量阈值法，20ms 窗口 RMS < 1000 视为底噪，只裁每个 generation 的第一个 chunk，上限 `max_trim_ms=300`，词时间戳整体前移。它改善的是"首个可听到的词"的时间（测试：120ms 底噪 → 裁 1920 样本，可听起点提前约 120ms）；`turn_end_to_first_audio` 度量的是首帧写入（无论是不是底噪），所以这个指标不受影响。`sample-output` 的场景都没有配置底噪，`trimmed_samples=0`。
@@ -98,7 +100,7 @@ Session.run() ── TaskGroup：session/audio_pump、session/asr_consumer、ses
 - **路由边界**：PLAYING 期间结束的语音段，其迟到 final 可能拼到下一轮；回复播完后才到的迟到词不会进判停；`_end_turn` 时用户正说话会合成一个新轮次的开头（记 `turn_started(cause=carry_over)`），开口时刻取 tracker 记下的起点。
 - **真实 Provider 下的边界**：看门狗在 chunk 中途杀掉 tts_bridge 时，账本里该 chunk 停在 `synthesized`；LLM 的 EOS put 没有 grace 上限。
 - **指标**：暂停与开口的配对限定在本段结束前，极短的语音段可能漏配一次暂停。脚本源在帧的起点时间戳就把整帧交出（真实采集要等这 20ms 采完），所以 speech-start detection、停播等检测类延迟比真实采集乐观约 20ms。
-- **回声（只写方案，未实现）**：真实场景中机器人自己的声音会被麦克风收进来，误触发打断。方案：播放器知道此刻正在播放哪段文字（Playback Truth 的词时间戳），ASR 识别出的词如果和"正在播放的文字窗口"吻合，就当作回声，不计入用户词数、不触发打断。假数据要用脚本把机器人声音真正混入麦克风输入来模拟，不能直接给帧打"回声"标签。
+- **回声识别（已实现，不做 AEC）**：机器人的声音被麦克风收进来时，VAD 会照常暂停播放；判定时把识别出的词和"机器人正在播放的文字"比对。窗口来自 Playback Truth：账本按每帧写入 sink 的时刻记下每个词最后一次出声的时间，取与"这段话开口前 500ms 到现在"重叠的词；utterance 的 token 规范化后按顺序在窗口里找得到的算回声，不计入用户词数（指令词检查也只看用户的词，机器人自己说的 "stop" 不会打断）。全是回声 → `echo`，像噪声一样丢弃转写并恢复；剩下的用户词照常判定。**仿真**：脚本 `Echo(ms)` 只产生普通的高能量音频帧（`script_marker(segment=echo)` 只给评测用）；假 ASR 通过仿真层的 `EchoPath`（由 FakeSink 的写入时刻和假 TTS 的合成方式还原每帧播的是哪个词）把回声识别成这段时间里扬声器播出的词，Session / 门禁不碰它。**代价**：每次回声和噪声一样造成一次短暂停（F 中 360ms）。**局限**：只认逐字吻合的回声，ASR 把回声听错、改写或只听出半个词就匹配不上，会被当成用户的话（多半判为打断）；用户恰好说出窗口里机器人刚说过的词，这个词会被当作回声剔除；只模拟了短时回声，持续漏音在没有 AEC 时会反复"暂停 → 判回声 → 恢复 → 再暂停"，播放断断续续——这需要真正的 AEC 或在 VAD 前做回声抑制。
 
 ## 9. 设计问答
 
@@ -108,7 +110,7 @@ Session.run() ── TaskGroup：session/audio_pump、session/asr_consumer、ses
 4. **固定静音阈值的问题？确认时间怎样影响 barge-in latency？** 阈值短会在犹豫停顿时抢话（B 的 700ms），阈值长则每一轮都要等满，响应慢；它不看用户说了什么。本实现用文本完整度 + 随静音下降的阈值：完整句 200ms 判停，"for" 结尾在 1500ms 静音兜底前不会判停。1500ms 兜底和一个大的固定阈值不同：它只是防止永远不判的安全上限，不是解决 B 的机制；B 靠的是语义分数，完整句不用等到它。打断这边，每多一帧确认停播就晚 20ms；本实现只用 3 帧确认停声（实测 40ms），把"等识别出词"的确认放在暂停之后（判定 240ms），所以确认时间主要影响判定延迟和噪声造成的空隙（D 中 240ms），不影响停声延迟。
 5. **TTS 快于播放：阻塞、丢弃、限流还是取消？** 阻塞（背压）。playback 队列 75 帧（1.5s），满了 TTS 的 put 就阻塞，TTS 再反压 LLM。丢弃会让音频和 Playback Truth 出现空洞；取消只用于作废；限流在这里就是背压的效果。D 中队列打到上限 75，C 中 65。打断时队列的内容同步 purge，所以积压不会拖慢停播。
 6. **拆成三个独立服务后，事件顺序和取消语义会多出哪些问题？** 没有了全局的 `sequence_number` 和统一时钟，跨服务事件只能靠 generation_id 加各自的单调序号排序，时钟偏差会让延迟指标失真；cancel 变成可能丢失、重复、乱序的消息，每一跳都要按 generation_id 做闸（fencing）并保证幂等；网络缓冲里在途的数据更多，迟到项变多、持续更久；背压要跨网络做（基于额度的流控）；Playback Truth 必须由最靠近扬声器的一端回报，有延迟；关闭时对端的孤儿流需要租约 / 超时回收。
-7. **当前实现最可能在生产出的三个故障？** ① 回声：没有 AEC 和回声识别，机器人自己的声音会触发暂停甚至打断。② 真实 ASR 的时序远比假实现差：partial 延迟和抖动更大、final 可能迟到或分段与 VAD 不一致，按时间重叠归属 utterance 会出错，400ms 的 `noise_timeout` 可能把慢 ASR 下的真实说话先判成噪声（迟到词路径只能部分补救）。③ 阻塞调用卡住 event loop：适配器的推理是同步的，接到实时 loop 里会拖慢 20ms 的控制 tick 和播放 tick，停播延迟和播放连续性随之变差。
+7. **当前实现最可能在生产出的三个故障？** ① 回声：没有 AEC，只靠文字比对识别回声；机器人的声音仍会先触发暂停，持续漏音会让播放反复暂停 / 恢复，ASR 把回声听错时还可能被判成打断。② 真实 ASR 的时序远比假实现差：partial 延迟和抖动更大、final 可能迟到或分段与 VAD 不一致，按时间重叠归属 utterance 会出错，400ms 的 `noise_timeout` 可能把慢 ASR 下的真实说话先判成噪声（迟到词路径只能部分补救）。③ 阻塞调用卡住 event loop：适配器的推理是同步的，接到实时 loop 里会拖慢 20ms 的控制 tick 和播放 tick，停播延迟和播放连续性随之变差。
 
 ## 10. 最终默认参数（`RuntimeConfig`）
 
