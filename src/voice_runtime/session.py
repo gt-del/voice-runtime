@@ -37,7 +37,7 @@ class Providers:
     l3: TurnScorer | None = None
 
 
-@dataclass
+@dataclass(eq=False)  # 按身份比较：deque 的 in / remove 不能把两段话当成同一段
 class _GateUtterance:
     """门禁正在评估（或最近判定过）的一段话：Utterance 加上 Session 侧的路由与判定状态。"""
     u: Utterance
@@ -94,7 +94,6 @@ class Session:
         self._utterance_id = 0
         self._gate: _GateUtterance | None = None  # 正在评估的那段话
         self._decided: deque[_GateUtterance] = deque(maxlen=4)  # 最近判为噪声/搭腔的话（迟到的词）
-        self._late: _GateUtterance | None = None  # 收到迟到的词、等待重新判定的噪声
         self._decide_task: asyncio.Task | None = None
         self._recent_pcm: deque[bytes] = deque(maxlen=cfg.pause_min_speech_frames)
         self._cascade = EndpointCascade(cfg, log, [providers.l1], spawn=self._spawn)
@@ -244,7 +243,7 @@ class Session:
         g = self._gate
         if edge.kind == "end" and g is not None and g.u.vad_ended_at_ms is None:
             g.u.vad_ended_at_ms = edge.ts_ms
-            g.dirty = True
+            self._refresh_text(g)
         # PENDING / PLAYING 中的语音边界由打断门禁处理（Task 13），这里不参与判停
         if listening:
             if edge.kind == "start":
@@ -379,10 +378,12 @@ class Session:
             if run and g.u.vad_ended_at_ms is None:
                 g.u.append_audio(frame.pcm, self.cfg)
             elif run >= self.cfg.pause_min_speech_frames:
-                # 尚未判定时用户又开口：同一段话的 VAD 区间重新打开
+                # 尚未判定时用户又开口：同一段话的 VAD 区间重新打开，补上达到门槛前的几帧
                 g.u.vad_ended_at_ms = None
+                for pcm in self._recent_pcm:
+                    g.u.append_audio(pcm, self.cfg)
                 g.epoch = self._tracker.epoch
-                g.dirty = True
+                self._refresh_text(g)
             return
         if run < self.cfg.pause_min_speech_frames or self.state not in (SessionState.PLAYING,
                                                                        SessionState.PENDING):
@@ -407,13 +408,16 @@ class Session:
 
     def _gate_on_asr(self, g: _GateUtterance, ev: AsrEvent) -> None:
         g.segments[ev.segment_id] = (ev.text, ev.kind == "final")
+        self._refresh_text(g)
+
+    @staticmethod
+    def _refresh_text(g: _GateUtterance) -> None:
+        """按 segment 顺序汇总文本。VAD 仍在说话时不算有 final：判定不会进入搭腔评分。"""
         u = g.u
         u.partial_text = " ".join(t for t, _ in g.segments.values() if t)
-        u.final_text = u.partial_text if all(f for _, f in g.segments.values()) else None
+        done = u.vad_ended_at_ms is not None and all(f for _, f in g.segments.values())
+        u.final_text = u.partial_text if done and g.segments else None
         g.dirty = True
-        if (g is not self._gate and g.result is GateResult.NOISE
-                and g.generation_id == self.active_generation_id):
-            self._late = g  # 迟到的词（§9.3）；判为搭腔、或那次回复已结束的，直接丢弃
 
     def _gate_tick(self, now: int) -> None:
         """每次最多一个在途判定；只在输入变化或等待噪声超时时才重新判定（不多调附和评分器）。"""
@@ -426,9 +430,12 @@ class Session:
                                and now - u.vad_ended_at_ms >= self.cfg.noise_timeout_ms)
             if g.dirty or waiting_timeout:
                 self._spawn_decide(g, now, late=False)
-        elif self._late is not None:
-            g, self._late = self._late, None
-            self._spawn_decide(g, now, late=True)
+            return
+        # 迟到的词（§9.3）：只重判那次回复仍在播的噪声；判为搭腔的话直接丢弃
+        late = next((d for d in self._decided if d.dirty and d.result is GateResult.NOISE
+                     and d.generation_id == self.active_generation_id), None)
+        if late is not None:
+            self._spawn_decide(late, now, late=True)
 
     def _spawn_decide(self, g: _GateUtterance, now: int, late: bool) -> None:
         g.dirty = False
@@ -476,7 +483,9 @@ class Session:
         if self.state is SessionState.PENDING:
             # 用户继续说：作废 generation，同一轮继续累计文本（不结束轮次、不提交上下文）
             g, self._gate = self._gate, None
+            self._player.unhold(gen.id)  # 播放器不再持有，supervisor 退出后即可清理
             self.invalidate(gen, "user_continued")
+            self._prune(gen.id)
             self.state = SessionState.LISTENING
             self._hand_to_cascade(g)
             return
@@ -490,7 +499,7 @@ class Session:
             self._open_turn()
         u = g.u
         self._cascade.on_speech_edge(SpeechEdge("start", u.start_ms, g.epoch))
-        if u.partial_text:
-            self._cascade.on_text(u.partial_text, u.final_text is not None)
+        for text, is_final in g.segments.values():  # 逐段补放：先各段 final，最后一段可能仍是 partial
+            self._cascade.on_text(text, is_final)
         if u.vad_ended_at_ms is not None:
             self._cascade.on_speech_edge(SpeechEdge("end", u.vad_ended_at_ms, g.epoch))

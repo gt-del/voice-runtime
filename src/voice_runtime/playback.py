@@ -94,6 +94,12 @@ class Player:
         if self.state is GateState.HELD and generation_id == self.current_generation:
             self.state = GateState.PLAYING
 
+    def unhold(self, generation_id: int) -> None:
+        """放下一个还没出声的 held generation（pending 阶段被作废），不写 playback_stopped。"""
+        if self.state is GateState.HELD and generation_id == self.current_generation:
+            self.state = GateState.IDLE
+            self.current_generation = None
+
     def pause(self) -> int:
         position = self._written * FRAME_SAMPLES
         if self.state is not GateState.PLAYING:

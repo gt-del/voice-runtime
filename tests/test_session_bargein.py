@@ -1,9 +1,11 @@
 from helpers import run_scenario
 
 from voice_runtime.audio import word_duration_ms
-from voice_runtime.providers.fake import StreamFaults
+from voice_runtime.events import EventLog
+from voice_runtime.playback import FakeSink
+from voice_runtime.providers.fake import FakeBackchannelScorer, StreamFaults
 from voice_runtime.scenarios import Scenario
-from voice_runtime.script import AfterEvent, Noise, Speech
+from voice_runtime.script import AfterEvent, Noise, Silence, Speech
 
 LLM = StreamFaults(300, 50)
 TTS = StreamFaults(200, 40)
@@ -155,6 +157,7 @@ def test_user_continues_during_pending_merges_into_same_turn(tmp_path):
     assert len(user) == 1 and user[0]["turn_id"] == 1
     assert "afternoon" in user[0]["payload"]["text"]
     assert of(ev, "playback_started")[0]["generation_id"] == 2
+    assert 1 not in r.session._gens and 1 not in r.session._sups  # 作废的 generation 已清理
 
 
 def test_cough_during_pending_keeps_generation(tmp_path):
@@ -169,7 +172,21 @@ def test_cough_during_pending_keeps_generation(tmp_path):
     assert of(ev, "context_committed", role="assistant")[0]["payload"]["text"] == "Sure, booked."
 
 
-def test_double_barge_in_handles_both(tmp_path):
+def test_double_barge_in_handles_both(tmp_path, monkeypatch):
+    order: list[tuple[str, int]] = []  # sink 写入与 generation 取消的真实先后
+    write, emit = FakeSink.write, EventLog.emit
+
+    def spy_write(self, generation_id, frame_index, pcm):
+        order.append(("write", generation_id))
+        write(self, generation_id, frame_index, pcm)
+
+    def spy_emit(self, event_type, **kw):
+        if event_type == "generation_cancelled" and not kw.get("duplicate"):
+            order.append(("cancel", kw["generation_id"]))
+        return emit(self, event_type, **kw)
+
+    monkeypatch.setattr(FakeSink, "write", spy_write)
+    monkeypatch.setattr(EventLog, "emit", spy_emit)
     second = "Wait. Make it Saturday."
     segs = [Speech(REQUEST), AfterEvent("playback_started", 1200), Speech(STOP),
             AfterEvent("playback_started", 300, nth=2), Speech(second)]
@@ -185,7 +202,48 @@ def test_double_barge_in_handles_both(tmp_path):
     assert [(x["generation_id"], x["payload"]["result"]) for x in of(ev, "bargein_decision")] == \
         [(1, "interrupt"), (2, "interrupt")]
     for gid in (1, 2):
-        cancel, _ = assert_interrupted_turn(ev, gid)
-        assert not [w for w in r.sink.writes if w[1] == gid and w[0] > cancel["timestamp"]]
+        assert_interrupted_turn(ev, gid)
+        at = order.index(("cancel", gid))
+        assert ("write", gid) in order[:at] and ("write", gid) not in order[at:]
     assert [e["turn_id"] for e in of(ev, "endpoint_committed")] == [1, 2, 3]
     assert r.session.context[-1] == {"role": "assistant", "content": "Done, Saturday works."}
+
+
+def test_multi_segment_utterance_replays_every_segment_into_new_turn(tmp_path):
+    """判定时第一段已有 final、第二段还只有 partial：新一轮的文本两段都要有。"""
+    rest = "make it Friday instead."
+    segs = [Speech(REQUEST), AfterEvent("playback_started", 1000), Speech("Yeah."), Silence(100),
+            Speech(rest)]
+    r = run_scenario(scenario("multi_segment", segs, replies={f"Yeah. {rest}": "OK."},
+                              close_after=("context_committed", 4, 100)), tmp_path)
+    ev = r.events
+    d = of(ev, "bargein_decision")
+    assert [x["payload"]["result"] for x in d] == ["interrupt"]
+    seg1_final = of(ev, "asr_final", text="Yeah.")[0]
+    assert seg1_final["sequence_number"] < d[0]["sequence_number"]
+    assert not of(ev, "asr_final", text=rest)[0]["sequence_number"] < d[0]["sequence_number"]
+    assert d[0]["payload"]["words"][:2] == ["yeah", "make"]
+    user = [c for c in of(ev, "context_committed", role="user") if c["turn_id"] == 2]
+    assert user[0]["payload"]["text"] == f"Yeah. {rest}"
+
+
+def test_backchannel_scorer_not_called_while_vad_reopened(tmp_path, monkeypatch):
+    """第一段的 final 到达时用户已经又开口：不评分，等整段说完只评一次。"""
+    calls = []
+    score = FakeBackchannelScorer.score
+
+    async def spy(self, slices):
+        calls.append(len(slices))
+        return await score(self, slices)
+
+    monkeypatch.setattr(FakeBackchannelScorer, "score", spy)
+    segs = [Speech(REQUEST), AfterEvent("playback_started", 1000), Speech("Yeah."), Silence(100),
+            Speech("Yeah.")]
+    r = run_scenario(scenario("reopen_score", segs), tmp_path)
+    ev = r.events
+    reopen = of(ev, "speech_start")[1]
+    assert of(ev, "asr_final", text="Yeah.")[0]["sequence_number"] > reopen["sequence_number"]
+    assert [x["payload"]["result"] for x in of(ev, "bargein_decision")] == ["backchannel"]
+    assert len(calls) == 1
+    # 重新开口前的几帧也计入这段话的音频：两段各 100ms → 至少 200ms
+    assert calls[0] * 80 >= 200
