@@ -88,11 +88,11 @@ ScriptedAudioSource ─帧─► Session（唯一 owner：ID、状态机、TaskG
 - **真实模型适配器（P2）只接了接口**：`adapters/` 下的 Silero VAD、FireRedChat turn detector、Smart Turn、Jev 都能实例化、符合同一套 Protocol，但**输入输出形状、张量名、接口字段都是未经验证的占位**，没有在真实模型或服务上跑过；真实时钟也没有接入，所以适配器目前不能接到 Session 上做实时 demo。
 - **不做回声消除（AEC）**：回声只靠文字比对识别，只模拟了短时回声；持续漏音、被 ASR 听错或改写的回声没有覆盖（见 DESIGN.md「取舍与已知局限」）。
 - 只支持英文。
-- `agent-chat.md`：由作者导出对话记录并去除个人信息后自行添加。
 
 ## AI 工具使用说明
 
 - **用了什么、用在哪**：使用 Claude（Claude Code）和 opencode。Claude 负责需求讨论、设计文档（`docs/superpowers/specs/`）、实施计划（`docs/superpowers/plans/`）和按任务实现与评审，最后生成本 README、DESIGN.md 和 `sample-output/` 分析；opencode 负责做一些核查。
+- **对话记录**：完整的 Agent 对话见 [agent-chat.md](agent-chat.md)（已去除个人信息；工具调用和子代理报告做了压缩）。
 - **哪些设计是作者自己做的**：设计文档中标注【用户决定】的条目，是讨论中由作者明确拍板的：
   - 真实模型只作为可替换的打分器、只接接口，核心测试全部用确定性假实现；适配器选型为 Silero VAD、FireRedChat-turn-detector、Smart Turn v3 / LiveKit v1-mini、Jev / LLM
   - 只支持英文
