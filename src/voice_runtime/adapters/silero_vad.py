@@ -1,4 +1,9 @@
-"""Silero VAD（ONNX，v5 接口）：把 20ms 帧攒成 512 采样窗口再推理。"""
+"""Silero VAD（ONNX）：把 20ms 帧攒成 512 采样窗口再推理。
+
+【未验证】本适配器的输入/输出形状、张量名与输出语义均为未经验证的占位假设，
+不保证能在真实模型上运行；接入时须对照其实际 I/O 修改。
+假设输入名 input/state/sr、输出为 (prob, state)、64 采样 context（v5 风格）均未核实。
+"""
 from pathlib import Path
 
 from voice_runtime.audio import SAMPLE_RATE, Frame
@@ -41,4 +46,4 @@ class SileroVAD:
             None, {"input": inp, "state": self._state, "sr": np.array(SAMPLE_RATE, dtype=np.int64)}
         )
         self._ctx = x[:, -CONTEXT:]
-        return float(out[0][0])
+        return float(out.reshape(-1)[0])

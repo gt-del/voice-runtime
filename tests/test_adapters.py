@@ -42,9 +42,9 @@ def test_silero_buffers_until_first_window(tmp_path, monkeypatch):
 
 
 def test_silero_real_model_requires_deps(tmp_path):
-    pytest.importorskip("onnxruntime")
+    ort = pytest.importorskip("onnxruntime")
     pytest.importorskip("numpy")
     bad = tmp_path / "bad.onnx"
     bad.write_bytes(b"not a model")
-    with pytest.raises(Exception):
+    with pytest.raises(ort.capi.onnxruntime_pybind11_state.InvalidProtobuf):
         SileroVAD(bad)
