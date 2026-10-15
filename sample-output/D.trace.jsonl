@@ -2,414 +2,415 @@
 {"event_type":"audio_frame","generation_id":null,"payload":{"seq":0,"ts_ms":0},"sequence_number":1,"session_id":"s1","timestamp":0,"turn_id":null}
 {"event_type":"audio_frame","generation_id":null,"payload":{"seq":1,"ts_ms":20},"sequence_number":2,"session_id":"s1","timestamp":20,"turn_id":null}
 {"event_type":"audio_frame","generation_id":null,"payload":{"seq":2,"ts_ms":40},"sequence_number":3,"session_id":"s1","timestamp":40,"turn_id":null}
-{"event_type":"speech_start","generation_id":null,"payload":{"epoch":1,"ts_ms":0},"sequence_number":4,"session_id":"s1","timestamp":40,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":3,"ts_ms":60},"sequence_number":5,"session_id":"s1","timestamp":60,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":4,"ts_ms":80},"sequence_number":6,"session_id":"s1","timestamp":80,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":5,"ts_ms":100},"sequence_number":7,"session_id":"s1","timestamp":100,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":6,"ts_ms":120},"sequence_number":8,"session_id":"s1","timestamp":120,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":7,"ts_ms":140},"sequence_number":9,"session_id":"s1","timestamp":140,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":8,"ts_ms":160},"sequence_number":10,"session_id":"s1","timestamp":160,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":9,"ts_ms":180},"sequence_number":11,"session_id":"s1","timestamp":180,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":10,"ts_ms":200},"sequence_number":12,"session_id":"s1","timestamp":200,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":11,"ts_ms":220},"sequence_number":13,"session_id":"s1","timestamp":220,"turn_id":1}
-{"event_type":"asr_partial","generation_id":null,"payload":{"segment_end_ms":100,"segment_id":0,"segment_start_ms":0,"text":"Book"},"sequence_number":14,"session_id":"s1","timestamp":220,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":12,"ts_ms":240},"sequence_number":15,"session_id":"s1","timestamp":240,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":13,"ts_ms":260},"sequence_number":16,"session_id":"s1","timestamp":260,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":14,"ts_ms":280},"sequence_number":17,"session_id":"s1","timestamp":280,"turn_id":1}
-{"event_type":"asr_partial","generation_id":null,"payload":{"segment_end_ms":160,"segment_id":0,"segment_start_ms":0,"text":"Book a"},"sequence_number":18,"session_id":"s1","timestamp":280,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":15,"ts_ms":300},"sequence_number":19,"session_id":"s1","timestamp":300,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":16,"ts_ms":320},"sequence_number":20,"session_id":"s1","timestamp":320,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":17,"ts_ms":340},"sequence_number":21,"session_id":"s1","timestamp":340,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":18,"ts_ms":360},"sequence_number":22,"session_id":"s1","timestamp":360,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":19,"ts_ms":380},"sequence_number":23,"session_id":"s1","timestamp":380,"turn_id":1}
-{"event_type":"asr_partial","generation_id":null,"payload":{"segment_end_ms":260,"segment_id":0,"segment_start_ms":0,"text":"Book a table"},"sequence_number":24,"session_id":"s1","timestamp":380,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":20,"ts_ms":400},"sequence_number":25,"session_id":"s1","timestamp":400,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":21,"ts_ms":420},"sequence_number":26,"session_id":"s1","timestamp":420,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":22,"ts_ms":440},"sequence_number":27,"session_id":"s1","timestamp":440,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":23,"ts_ms":460},"sequence_number":28,"session_id":"s1","timestamp":460,"turn_id":1}
-{"event_type":"asr_partial","generation_id":null,"payload":{"segment_end_ms":340,"segment_id":0,"segment_start_ms":0,"text":"Book a table for"},"sequence_number":29,"session_id":"s1","timestamp":460,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":24,"ts_ms":480},"sequence_number":30,"session_id":"s1","timestamp":480,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":25,"ts_ms":500},"sequence_number":31,"session_id":"s1","timestamp":500,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":26,"ts_ms":520},"sequence_number":32,"session_id":"s1","timestamp":520,"turn_id":1}
-{"event_type":"script_marker","generation_id":null,"payload":{"eval_only":true,"index":0,"phase":"end","segment":"speech","text":"Book a table for two please."},"sequence_number":33,"session_id":"s1","timestamp":540,"turn_id":null}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":27,"ts_ms":540},"sequence_number":34,"session_id":"s1","timestamp":540,"turn_id":1}
-{"event_type":"asr_partial","generation_id":null,"payload":{"segment_end_ms":420,"segment_id":0,"segment_start_ms":0,"text":"Book a table for two"},"sequence_number":35,"session_id":"s1","timestamp":540,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":28,"ts_ms":560},"sequence_number":36,"session_id":"s1","timestamp":560,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":29,"ts_ms":580},"sequence_number":37,"session_id":"s1","timestamp":580,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":30,"ts_ms":600},"sequence_number":38,"session_id":"s1","timestamp":600,"turn_id":1}
-{"event_type":"speech_end","generation_id":null,"payload":{"epoch":1,"ts_ms":540},"sequence_number":39,"session_id":"s1","timestamp":600,"turn_id":1}
-{"event_type":"turn_score","generation_id":null,"payload":{"confidence":0.55,"decision":"uncertain","epoch":1,"latency_ms":0,"level":1,"p":0.7,"rules":["trailing_content_word"],"text_version":5},"sequence_number":40,"session_id":"s1","timestamp":600,"turn_id":1}
-{"event_type":"speculation_started","generation_id":1,"payload":{"text":"Book a table for two"},"sequence_number":41,"session_id":"s1","timestamp":600,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":31,"ts_ms":620},"sequence_number":42,"session_id":"s1","timestamp":620,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":32,"ts_ms":640},"sequence_number":43,"session_id":"s1","timestamp":640,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":33,"ts_ms":660},"sequence_number":44,"session_id":"s1","timestamp":660,"turn_id":1}
-{"event_type":"asr_partial","generation_id":null,"payload":{"segment_end_ms":540,"segment_id":0,"segment_start_ms":0,"text":"Book a table for two please"},"sequence_number":45,"session_id":"s1","timestamp":660,"turn_id":1}
-{"event_type":"turn_score","generation_id":null,"payload":{"confidence":0.55,"decision":"uncertain","epoch":1,"latency_ms":0,"level":1,"p":0.7,"rules":["trailing_content_word"],"text_version":6},"sequence_number":46,"session_id":"s1","timestamp":660,"turn_id":1}
-{"event_type":"generation_cancelled","generation_id":1,"payload":{"duplicate":false,"reason":"speculation_superseded"},"sequence_number":47,"session_id":"s1","timestamp":660,"turn_id":1}
-{"event_type":"stale_event_dropped","generation_id":1,"payload":{"frames":0,"gate":"purge","phase":"purge","unit":"frame"},"sequence_number":48,"session_id":"s1","timestamp":660,"turn_id":1}
-{"event_type":"speculation_started","generation_id":2,"payload":{"text":"Book a table for two please"},"sequence_number":49,"session_id":"s1","timestamp":660,"turn_id":1}
-{"event_type":"stale_event_dropped","generation_id":1,"payload":{"gate":"2","phase":"late","unit":"eos"},"sequence_number":50,"session_id":"s1","timestamp":660,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":34,"ts_ms":680},"sequence_number":51,"session_id":"s1","timestamp":680,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":35,"ts_ms":700},"sequence_number":52,"session_id":"s1","timestamp":700,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":36,"ts_ms":720},"sequence_number":53,"session_id":"s1","timestamp":720,"turn_id":1}
-{"event_type":"asr_final","generation_id":null,"payload":{"segment_end_ms":540,"segment_id":0,"segment_start_ms":0,"text":"Book a table for two please."},"sequence_number":54,"session_id":"s1","timestamp":720,"turn_id":1}
-{"event_type":"turn_score","generation_id":null,"payload":{"confidence":0.8,"decision":"commit_candidate","epoch":1,"latency_ms":0,"level":1,"p":0.95,"rules":["terminal_punct"],"text_version":7},"sequence_number":55,"session_id":"s1","timestamp":720,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":37,"ts_ms":740},"sequence_number":56,"session_id":"s1","timestamp":740,"turn_id":1}
-{"event_type":"endpoint_committed","generation_id":2,"payload":{"decided_at":740,"level":1,"p":0.95,"reason":"score_threshold","text":"Book a table for two please.","text_source":"final","threshold":0.85},"sequence_number":57,"session_id":"s1","timestamp":740,"turn_id":1}
-{"event_type":"speculation_adopted","generation_id":2,"payload":{"text":"Book a table for two please"},"sequence_number":58,"session_id":"s1","timestamp":740,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":38,"ts_ms":760},"sequence_number":59,"session_id":"s1","timestamp":760,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":39,"ts_ms":780},"sequence_number":60,"session_id":"s1","timestamp":780,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":40,"ts_ms":800},"sequence_number":61,"session_id":"s1","timestamp":800,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":41,"ts_ms":820},"sequence_number":62,"session_id":"s1","timestamp":820,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":42,"ts_ms":840},"sequence_number":63,"session_id":"s1","timestamp":840,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":43,"ts_ms":860},"sequence_number":64,"session_id":"s1","timestamp":860,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":44,"ts_ms":880},"sequence_number":65,"session_id":"s1","timestamp":880,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":45,"ts_ms":900},"sequence_number":66,"session_id":"s1","timestamp":900,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":46,"ts_ms":920},"sequence_number":67,"session_id":"s1","timestamp":920,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":47,"ts_ms":940},"sequence_number":68,"session_id":"s1","timestamp":940,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":48,"ts_ms":960},"sequence_number":69,"session_id":"s1","timestamp":960,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"Sure, "},"sequence_number":70,"session_id":"s1","timestamp":972,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":49,"ts_ms":980},"sequence_number":71,"session_id":"s1","timestamp":980,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":50,"ts_ms":1000},"sequence_number":72,"session_id":"s1","timestamp":1000,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":51,"ts_ms":1020},"sequence_number":73,"session_id":"s1","timestamp":1020,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"I "},"sequence_number":74,"session_id":"s1","timestamp":1035,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":52,"ts_ms":1040},"sequence_number":75,"session_id":"s1","timestamp":1040,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":53,"ts_ms":1060},"sequence_number":76,"session_id":"s1","timestamp":1060,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":54,"ts_ms":1080},"sequence_number":77,"session_id":"s1","timestamp":1080,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"can "},"sequence_number":78,"session_id":"s1","timestamp":1086,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":55,"ts_ms":1100},"sequence_number":79,"session_id":"s1","timestamp":1100,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":56,"ts_ms":1120},"sequence_number":80,"session_id":"s1","timestamp":1120,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":57,"ts_ms":1140},"sequence_number":81,"session_id":"s1","timestamp":1140,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"help "},"sequence_number":82,"session_id":"s1","timestamp":1144,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":58,"ts_ms":1160},"sequence_number":83,"session_id":"s1","timestamp":1160,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":59,"ts_ms":1180},"sequence_number":84,"session_id":"s1","timestamp":1180,"turn_id":1}
-{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":0,"samples":3840,"text_range":[0,11],"trimmed_samples":0},"sequence_number":85,"session_id":"s1","timestamp":1184,"turn_id":1}
-{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":0,"depth":12,"frames":12,"queue":"playback"},"sequence_number":86,"session_id":"s1","timestamp":1184,"turn_id":1}
-{"event_type":"playback_started","generation_id":2,"payload":{},"sequence_number":87,"session_id":"s1","timestamp":1200,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":60,"ts_ms":1200},"sequence_number":88,"session_id":"s1","timestamp":1200,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"with "},"sequence_number":89,"session_id":"s1","timestamp":1210,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":61,"ts_ms":1220},"sequence_number":90,"session_id":"s1","timestamp":1220,"turn_id":1}
-{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":1,"samples":3200,"text_range":[11,21],"trimmed_samples":0},"sequence_number":91,"session_id":"s1","timestamp":1237,"turn_id":1}
-{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":1,"depth":20,"frames":10,"queue":"playback"},"sequence_number":92,"session_id":"s1","timestamp":1237,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":62,"ts_ms":1240},"sequence_number":93,"session_id":"s1","timestamp":1240,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":63,"ts_ms":1260},"sequence_number":94,"session_id":"s1","timestamp":1260,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"that. "},"sequence_number":95,"session_id":"s1","timestamp":1275,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":64,"ts_ms":1280},"sequence_number":96,"session_id":"s1","timestamp":1280,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":100,"ranges":[[2,0,4]]},"sequence_number":97,"session_id":"s1","timestamp":1300,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":65,"ts_ms":1300},"sequence_number":98,"session_id":"s1","timestamp":1300,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":66,"ts_ms":1320},"sequence_number":99,"session_id":"s1","timestamp":1320,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"Your "},"sequence_number":100,"session_id":"s1","timestamp":1337,"turn_id":1}
-{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":2,"samples":3200,"text_range":[21,32],"trimmed_samples":0},"sequence_number":101,"session_id":"s1","timestamp":1337,"turn_id":1}
-{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":2,"depth":25,"frames":10,"queue":"playback"},"sequence_number":102,"session_id":"s1","timestamp":1337,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":67,"ts_ms":1340},"sequence_number":103,"session_id":"s1","timestamp":1340,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":68,"ts_ms":1360},"sequence_number":104,"session_id":"s1","timestamp":1360,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":69,"ts_ms":1380},"sequence_number":105,"session_id":"s1","timestamp":1380,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"table "},"sequence_number":106,"session_id":"s1","timestamp":1396,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":70,"ts_ms":1400},"sequence_number":107,"session_id":"s1","timestamp":1400,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":200,"ranges":[[2,5,9]]},"sequence_number":108,"session_id":"s1","timestamp":1400,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":71,"ts_ms":1420},"sequence_number":109,"session_id":"s1","timestamp":1420,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":72,"ts_ms":1440},"sequence_number":110,"session_id":"s1","timestamp":1440,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":73,"ts_ms":1460},"sequence_number":111,"session_id":"s1","timestamp":1460,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"for "},"sequence_number":112,"session_id":"s1","timestamp":1461,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":74,"ts_ms":1480},"sequence_number":113,"session_id":"s1","timestamp":1480,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":75,"ts_ms":1500},"sequence_number":114,"session_id":"s1","timestamp":1500,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":300,"ranges":[[2,10,14]]},"sequence_number":115,"session_id":"s1","timestamp":1500,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":76,"ts_ms":1520},"sequence_number":116,"session_id":"s1","timestamp":1520,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"two "},"sequence_number":117,"session_id":"s1","timestamp":1522,"turn_id":1}
-{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":3,"samples":4160,"text_range":[32,46],"trimmed_samples":0},"sequence_number":118,"session_id":"s1","timestamp":1522,"turn_id":1}
-{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":3,"depth":28,"frames":13,"queue":"playback"},"sequence_number":119,"session_id":"s1","timestamp":1522,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":77,"ts_ms":1540},"sequence_number":120,"session_id":"s1","timestamp":1540,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":78,"ts_ms":1560},"sequence_number":121,"session_id":"s1","timestamp":1560,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":79,"ts_ms":1580},"sequence_number":122,"session_id":"s1","timestamp":1580,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"is "},"sequence_number":123,"session_id":"s1","timestamp":1590,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":400,"ranges":[[2,15,19]]},"sequence_number":124,"session_id":"s1","timestamp":1600,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":80,"ts_ms":1600},"sequence_number":125,"session_id":"s1","timestamp":1600,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":81,"ts_ms":1620},"sequence_number":126,"session_id":"s1","timestamp":1620,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":82,"ts_ms":1640},"sequence_number":127,"session_id":"s1","timestamp":1640,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"booked "},"sequence_number":128,"session_id":"s1","timestamp":1646,"turn_id":1}
-{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":4,"samples":3200,"text_range":[46,56],"trimmed_samples":0},"sequence_number":129,"session_id":"s1","timestamp":1646,"turn_id":1}
-{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":4,"depth":32,"frames":10,"queue":"playback"},"sequence_number":130,"session_id":"s1","timestamp":1646,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":83,"ts_ms":1660},"sequence_number":131,"session_id":"s1","timestamp":1660,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":84,"ts_ms":1680},"sequence_number":132,"session_id":"s1","timestamp":1680,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":500,"ranges":[[2,20,24]]},"sequence_number":133,"session_id":"s1","timestamp":1700,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":85,"ts_ms":1700},"sequence_number":134,"session_id":"s1","timestamp":1700,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"for "},"sequence_number":135,"session_id":"s1","timestamp":1712,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":86,"ts_ms":1720},"sequence_number":136,"session_id":"s1","timestamp":1720,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":87,"ts_ms":1740},"sequence_number":137,"session_id":"s1","timestamp":1740,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":88,"ts_ms":1760},"sequence_number":138,"session_id":"s1","timestamp":1760,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"Thursday "},"sequence_number":139,"session_id":"s1","timestamp":1766,"turn_id":1}
-{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":5,"samples":3520,"text_range":[56,69],"trimmed_samples":0},"sequence_number":140,"session_id":"s1","timestamp":1766,"turn_id":1}
-{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":5,"depth":37,"frames":11,"queue":"playback"},"sequence_number":141,"session_id":"s1","timestamp":1766,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":89,"ts_ms":1780},"sequence_number":142,"session_id":"s1","timestamp":1780,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":600,"ranges":[[2,25,29]]},"sequence_number":143,"session_id":"s1","timestamp":1800,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":90,"ts_ms":1800},"sequence_number":144,"session_id":"s1","timestamp":1800,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":91,"ts_ms":1820},"sequence_number":145,"session_id":"s1","timestamp":1820,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"at "},"sequence_number":146,"session_id":"s1","timestamp":1825,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":92,"ts_ms":1840},"sequence_number":147,"session_id":"s1","timestamp":1840,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":93,"ts_ms":1860},"sequence_number":148,"session_id":"s1","timestamp":1860,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"seven "},"sequence_number":149,"session_id":"s1","timestamp":1879,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":94,"ts_ms":1880},"sequence_number":150,"session_id":"s1","timestamp":1880,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":700,"ranges":[[2,30,34]]},"sequence_number":151,"session_id":"s1","timestamp":1900,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":95,"ts_ms":1900},"sequence_number":152,"session_id":"s1","timestamp":1900,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":96,"ts_ms":1920},"sequence_number":153,"session_id":"s1","timestamp":1920,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"in "},"sequence_number":154,"session_id":"s1","timestamp":1932,"turn_id":1}
-{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":6,"samples":4160,"text_range":[69,81],"trimmed_samples":0},"sequence_number":155,"session_id":"s1","timestamp":1932,"turn_id":1}
-{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":6,"depth":42,"frames":13,"queue":"playback"},"sequence_number":156,"session_id":"s1","timestamp":1932,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":97,"ts_ms":1940},"sequence_number":157,"session_id":"s1","timestamp":1940,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":98,"ts_ms":1960},"sequence_number":158,"session_id":"s1","timestamp":1960,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":99,"ts_ms":1980},"sequence_number":159,"session_id":"s1","timestamp":1980,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":800,"ranges":[[2,35,39]]},"sequence_number":160,"session_id":"s1","timestamp":2000,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":100,"ts_ms":2000},"sequence_number":161,"session_id":"s1","timestamp":2000,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"the "},"sequence_number":162,"session_id":"s1","timestamp":2001,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":101,"ts_ms":2020},"sequence_number":163,"session_id":"s1","timestamp":2020,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":102,"ts_ms":2040},"sequence_number":164,"session_id":"s1","timestamp":2040,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"evening, "},"sequence_number":165,"session_id":"s1","timestamp":2059,"turn_id":1}
-{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":7,"samples":3200,"text_range":[81,94],"trimmed_samples":0},"sequence_number":166,"session_id":"s1","timestamp":2059,"turn_id":1}
-{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":7,"depth":46,"frames":10,"queue":"playback"},"sequence_number":167,"session_id":"s1","timestamp":2059,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":103,"ts_ms":2060},"sequence_number":168,"session_id":"s1","timestamp":2060,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":104,"ts_ms":2080},"sequence_number":169,"session_id":"s1","timestamp":2080,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":900,"ranges":[[2,40,44]]},"sequence_number":170,"session_id":"s1","timestamp":2100,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":105,"ts_ms":2100},"sequence_number":171,"session_id":"s1","timestamp":2100,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":106,"ts_ms":2120},"sequence_number":172,"session_id":"s1","timestamp":2120,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"and "},"sequence_number":173,"session_id":"s1","timestamp":2126,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":107,"ts_ms":2140},"sequence_number":174,"session_id":"s1","timestamp":2140,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":108,"ts_ms":2160},"sequence_number":175,"session_id":"s1","timestamp":2160,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":109,"ts_ms":2180},"sequence_number":176,"session_id":"s1","timestamp":2180,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"I "},"sequence_number":177,"session_id":"s1","timestamp":2195,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":1000,"ranges":[[2,45,49]]},"sequence_number":178,"session_id":"s1","timestamp":2200,"turn_id":1}
-{"event_type":"script_marker","generation_id":null,"payload":{"eval_only":true,"index":2,"phase":"start","segment":"noise","text":""},"sequence_number":179,"session_id":"s1","timestamp":2200,"turn_id":null}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":110,"ts_ms":2200},"sequence_number":180,"session_id":"s1","timestamp":2200,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":111,"ts_ms":2220},"sequence_number":181,"session_id":"s1","timestamp":2220,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":112,"ts_ms":2240},"sequence_number":182,"session_id":"s1","timestamp":2240,"turn_id":1}
-{"event_type":"speech_start","generation_id":null,"payload":{"epoch":2,"ts_ms":2200},"sequence_number":183,"session_id":"s1","timestamp":2240,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":1060,"ranges":[[2,50,52]]},"sequence_number":184,"session_id":"s1","timestamp":2240,"turn_id":1}
-{"event_type":"playback_stopped","generation_id":2,"payload":{"position_samples":16960,"reason":"paused_pending_decision"},"sequence_number":185,"session_id":"s1","timestamp":2240,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"have "},"sequence_number":186,"session_id":"s1","timestamp":2249,"turn_id":1}
-{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":8,"samples":3840,"text_range":[94,105],"trimmed_samples":0},"sequence_number":187,"session_id":"s1","timestamp":2249,"turn_id":1}
-{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":8,"depth":48,"frames":12,"queue":"playback"},"sequence_number":188,"session_id":"s1","timestamp":2249,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":113,"ts_ms":2260},"sequence_number":189,"session_id":"s1","timestamp":2260,"turn_id":1}
-{"event_type":"script_marker","generation_id":null,"payload":{"eval_only":true,"index":2,"phase":"end","segment":"noise","text":""},"sequence_number":190,"session_id":"s1","timestamp":2280,"turn_id":null}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":114,"ts_ms":2280},"sequence_number":191,"session_id":"s1","timestamp":2280,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":115,"ts_ms":2300},"sequence_number":192,"session_id":"s1","timestamp":2300,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"added "},"sequence_number":193,"session_id":"s1","timestamp":2308,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":116,"ts_ms":2320},"sequence_number":194,"session_id":"s1","timestamp":2320,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":117,"ts_ms":2340},"sequence_number":195,"session_id":"s1","timestamp":2340,"turn_id":1}
-{"event_type":"speech_end","generation_id":null,"payload":{"epoch":2,"ts_ms":2280},"sequence_number":196,"session_id":"s1","timestamp":2340,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":118,"ts_ms":2360},"sequence_number":197,"session_id":"s1","timestamp":2360,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"a "},"sequence_number":198,"session_id":"s1","timestamp":2361,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":119,"ts_ms":2380},"sequence_number":199,"session_id":"s1","timestamp":2380,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":120,"ts_ms":2400},"sequence_number":200,"session_id":"s1","timestamp":2400,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"note "},"sequence_number":201,"session_id":"s1","timestamp":2413,"turn_id":1}
-{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":9,"samples":4160,"text_range":[105,118],"trimmed_samples":0},"sequence_number":202,"session_id":"s1","timestamp":2413,"turn_id":1}
-{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":9,"depth":61,"frames":13,"queue":"playback"},"sequence_number":203,"session_id":"s1","timestamp":2413,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":121,"ts_ms":2420},"sequence_number":204,"session_id":"s1","timestamp":2420,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":122,"ts_ms":2440},"sequence_number":205,"session_id":"s1","timestamp":2440,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":123,"ts_ms":2460},"sequence_number":206,"session_id":"s1","timestamp":2460,"turn_id":1}
-{"event_type":"asr_final","generation_id":null,"payload":{"segment_end_ms":2280,"segment_id":1,"segment_start_ms":2200,"text":""},"sequence_number":207,"session_id":"s1","timestamp":2460,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"about "},"sequence_number":208,"session_id":"s1","timestamp":2473,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":124,"ts_ms":2480},"sequence_number":209,"session_id":"s1","timestamp":2480,"turn_id":1}
-{"event_type":"bargein_decision","generation_id":2,"payload":{"late_interrupt":false,"result":"noise","rule":"noise_empty_final","scorer":null,"scores":null,"utterance_id":1,"words":[]},"sequence_number":210,"session_id":"s1","timestamp":2480,"turn_id":1}
-{"event_type":"playback_resumed","generation_id":2,"payload":{"paused_ms":240},"sequence_number":211,"session_id":"s1","timestamp":2480,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":125,"ts_ms":2500},"sequence_number":212,"session_id":"s1","timestamp":2500,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":126,"ts_ms":2520},"sequence_number":213,"session_id":"s1","timestamp":2520,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"the "},"sequence_number":214,"session_id":"s1","timestamp":2538,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":127,"ts_ms":2540},"sequence_number":215,"session_id":"s1","timestamp":2540,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":128,"ts_ms":2560},"sequence_number":216,"session_id":"s1","timestamp":2560,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":129,"ts_ms":2580},"sequence_number":217,"session_id":"s1","timestamp":2580,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":1160,"ranges":[[2,53,57]]},"sequence_number":218,"session_id":"s1","timestamp":2600,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":130,"ts_ms":2600},"sequence_number":219,"session_id":"s1","timestamp":2600,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"quiet "},"sequence_number":220,"session_id":"s1","timestamp":2605,"turn_id":1}
-{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":10,"samples":4480,"text_range":[118,134],"trimmed_samples":0},"sequence_number":221,"session_id":"s1","timestamp":2605,"turn_id":1}
-{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":10,"depth":69,"frames":14,"queue":"playback"},"sequence_number":222,"session_id":"s1","timestamp":2605,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":131,"ts_ms":2620},"sequence_number":223,"session_id":"s1","timestamp":2620,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":132,"ts_ms":2640},"sequence_number":224,"session_id":"s1","timestamp":2640,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"window "},"sequence_number":225,"session_id":"s1","timestamp":2658,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":133,"ts_ms":2660},"sequence_number":226,"session_id":"s1","timestamp":2660,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":134,"ts_ms":2680},"sequence_number":227,"session_id":"s1","timestamp":2680,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":135,"ts_ms":2700},"sequence_number":228,"session_id":"s1","timestamp":2700,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":1260,"ranges":[[2,58,62]]},"sequence_number":229,"session_id":"s1","timestamp":2700,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"seat "},"sequence_number":230,"session_id":"s1","timestamp":2719,"turn_id":1}
-{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":11,"samples":3520,"text_range":[134,146],"trimmed_samples":0},"sequence_number":231,"session_id":"s1","timestamp":2719,"turn_id":1}
-{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":11,"depth":75,"frames":11,"queue":"playback"},"sequence_number":232,"session_id":"s1","timestamp":2719,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":136,"ts_ms":2720},"sequence_number":233,"session_id":"s1","timestamp":2720,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":137,"ts_ms":2740},"sequence_number":234,"session_id":"s1","timestamp":2740,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":138,"ts_ms":2760},"sequence_number":235,"session_id":"s1","timestamp":2760,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":139,"ts_ms":2780},"sequence_number":236,"session_id":"s1","timestamp":2780,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"you "},"sequence_number":237,"session_id":"s1","timestamp":2782,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":140,"ts_ms":2800},"sequence_number":238,"session_id":"s1","timestamp":2800,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":1360,"ranges":[[2,63,67]]},"sequence_number":239,"session_id":"s1","timestamp":2800,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":141,"ts_ms":2820},"sequence_number":240,"session_id":"s1","timestamp":2820,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":142,"ts_ms":2840},"sequence_number":241,"session_id":"s1","timestamp":2840,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"asked "},"sequence_number":242,"session_id":"s1","timestamp":2842,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":143,"ts_ms":2860},"sequence_number":243,"session_id":"s1","timestamp":2860,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":144,"ts_ms":2880},"sequence_number":244,"session_id":"s1","timestamp":2880,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":145,"ts_ms":2900},"sequence_number":245,"session_id":"s1","timestamp":2900,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":1460,"ranges":[[2,68,72]]},"sequence_number":246,"session_id":"s1","timestamp":2900,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"for "},"sequence_number":247,"session_id":"s1","timestamp":2911,"turn_id":1}
-{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":12,"samples":4160,"text_range":[146,160],"trimmed_samples":0},"sequence_number":248,"session_id":"s1","timestamp":2911,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":146,"ts_ms":2920},"sequence_number":249,"session_id":"s1","timestamp":2920,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":147,"ts_ms":2940},"sequence_number":250,"session_id":"s1","timestamp":2940,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":148,"ts_ms":2960},"sequence_number":251,"session_id":"s1","timestamp":2960,"turn_id":1}
-{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":12,"depth":75,"frames":13,"queue":"playback"},"sequence_number":252,"session_id":"s1","timestamp":2960,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":149,"ts_ms":2980},"sequence_number":253,"session_id":"s1","timestamp":2980,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"earlier "},"sequence_number":254,"session_id":"s1","timestamp":2981,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":150,"ts_ms":3000},"sequence_number":255,"session_id":"s1","timestamp":3000,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":1560,"ranges":[[2,73,77]]},"sequence_number":256,"session_id":"s1","timestamp":3000,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":151,"ts_ms":3020},"sequence_number":257,"session_id":"s1","timestamp":3020,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"today, "},"sequence_number":258,"session_id":"s1","timestamp":3037,"turn_id":1}
-{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":13,"samples":3520,"text_range":[160,175],"trimmed_samples":0},"sequence_number":259,"session_id":"s1","timestamp":3037,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":152,"ts_ms":3040},"sequence_number":260,"session_id":"s1","timestamp":3040,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":153,"ts_ms":3060},"sequence_number":261,"session_id":"s1","timestamp":3060,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":154,"ts_ms":3080},"sequence_number":262,"session_id":"s1","timestamp":3080,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":155,"ts_ms":3100},"sequence_number":263,"session_id":"s1","timestamp":3100,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":1660,"ranges":[[2,78,82]]},"sequence_number":264,"session_id":"s1","timestamp":3100,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"so "},"sequence_number":265,"session_id":"s1","timestamp":3104,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":156,"ts_ms":3120},"sequence_number":266,"session_id":"s1","timestamp":3120,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":157,"ts_ms":3140},"sequence_number":267,"session_id":"s1","timestamp":3140,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":158,"ts_ms":3160},"sequence_number":268,"session_id":"s1","timestamp":3160,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"everything "},"sequence_number":269,"session_id":"s1","timestamp":3169,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":159,"ts_ms":3180},"sequence_number":270,"session_id":"s1","timestamp":3180,"turn_id":1}
-{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":13,"depth":75,"frames":11,"queue":"playback"},"sequence_number":271,"session_id":"s1","timestamp":3180,"turn_id":1}
-{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":14,"samples":3840,"text_range":[175,189],"trimmed_samples":0},"sequence_number":272,"session_id":"s1","timestamp":3180,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":160,"ts_ms":3200},"sequence_number":273,"session_id":"s1","timestamp":3200,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":1760,"ranges":[[2,83,87]]},"sequence_number":274,"session_id":"s1","timestamp":3200,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":161,"ts_ms":3220},"sequence_number":275,"session_id":"s1","timestamp":3220,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"is "},"sequence_number":276,"session_id":"s1","timestamp":3233,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":162,"ts_ms":3240},"sequence_number":277,"session_id":"s1","timestamp":3240,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":163,"ts_ms":3260},"sequence_number":278,"session_id":"s1","timestamp":3260,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":164,"ts_ms":3280},"sequence_number":279,"session_id":"s1","timestamp":3280,"turn_id":1}
-{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"ready. "},"sequence_number":280,"session_id":"s1","timestamp":3299,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":165,"ts_ms":3300},"sequence_number":281,"session_id":"s1","timestamp":3300,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":1860,"ranges":[[2,88,92]]},"sequence_number":282,"session_id":"s1","timestamp":3300,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":166,"ts_ms":3320},"sequence_number":283,"session_id":"s1","timestamp":3320,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":167,"ts_ms":3340},"sequence_number":284,"session_id":"s1","timestamp":3340,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":168,"ts_ms":3360},"sequence_number":285,"session_id":"s1","timestamp":3360,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":169,"ts_ms":3380},"sequence_number":286,"session_id":"s1","timestamp":3380,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":170,"ts_ms":3400},"sequence_number":287,"session_id":"s1","timestamp":3400,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":1960,"ranges":[[2,93,97]]},"sequence_number":288,"session_id":"s1","timestamp":3400,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":171,"ts_ms":3420},"sequence_number":289,"session_id":"s1","timestamp":3420,"turn_id":1}
-{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":14,"depth":75,"frames":12,"queue":"playback"},"sequence_number":290,"session_id":"s1","timestamp":3420,"turn_id":1}
-{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":15,"samples":2880,"text_range":[189,199],"trimmed_samples":0},"sequence_number":291,"session_id":"s1","timestamp":3420,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":172,"ts_ms":3440},"sequence_number":292,"session_id":"s1","timestamp":3440,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":173,"ts_ms":3460},"sequence_number":293,"session_id":"s1","timestamp":3460,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":174,"ts_ms":3480},"sequence_number":294,"session_id":"s1","timestamp":3480,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":175,"ts_ms":3500},"sequence_number":295,"session_id":"s1","timestamp":3500,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":2060,"ranges":[[2,98,102]]},"sequence_number":296,"session_id":"s1","timestamp":3500,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":176,"ts_ms":3520},"sequence_number":297,"session_id":"s1","timestamp":3520,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":177,"ts_ms":3540},"sequence_number":298,"session_id":"s1","timestamp":3540,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":178,"ts_ms":3560},"sequence_number":299,"session_id":"s1","timestamp":3560,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":179,"ts_ms":3580},"sequence_number":300,"session_id":"s1","timestamp":3580,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":180,"ts_ms":3600},"sequence_number":301,"session_id":"s1","timestamp":3600,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":2160,"ranges":[[2,103,107]]},"sequence_number":302,"session_id":"s1","timestamp":3600,"turn_id":1}
-{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":15,"depth":75,"frames":9,"queue":"playback"},"sequence_number":303,"session_id":"s1","timestamp":3600,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":181,"ts_ms":3620},"sequence_number":304,"session_id":"s1","timestamp":3620,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":182,"ts_ms":3640},"sequence_number":305,"session_id":"s1","timestamp":3640,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":183,"ts_ms":3660},"sequence_number":306,"session_id":"s1","timestamp":3660,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":184,"ts_ms":3680},"sequence_number":307,"session_id":"s1","timestamp":3680,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":185,"ts_ms":3700},"sequence_number":308,"session_id":"s1","timestamp":3700,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":2260,"ranges":[[2,108,112]]},"sequence_number":309,"session_id":"s1","timestamp":3700,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":186,"ts_ms":3720},"sequence_number":310,"session_id":"s1","timestamp":3720,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":187,"ts_ms":3740},"sequence_number":311,"session_id":"s1","timestamp":3740,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":188,"ts_ms":3760},"sequence_number":312,"session_id":"s1","timestamp":3760,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":189,"ts_ms":3780},"sequence_number":313,"session_id":"s1","timestamp":3780,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":190,"ts_ms":3800},"sequence_number":314,"session_id":"s1","timestamp":3800,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":2360,"ranges":[[2,113,117]]},"sequence_number":315,"session_id":"s1","timestamp":3800,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":191,"ts_ms":3820},"sequence_number":316,"session_id":"s1","timestamp":3820,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":192,"ts_ms":3840},"sequence_number":317,"session_id":"s1","timestamp":3840,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":193,"ts_ms":3860},"sequence_number":318,"session_id":"s1","timestamp":3860,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":194,"ts_ms":3880},"sequence_number":319,"session_id":"s1","timestamp":3880,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":195,"ts_ms":3900},"sequence_number":320,"session_id":"s1","timestamp":3900,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":2460,"ranges":[[2,118,122]]},"sequence_number":321,"session_id":"s1","timestamp":3900,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":196,"ts_ms":3920},"sequence_number":322,"session_id":"s1","timestamp":3920,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":197,"ts_ms":3940},"sequence_number":323,"session_id":"s1","timestamp":3940,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":198,"ts_ms":3960},"sequence_number":324,"session_id":"s1","timestamp":3960,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":199,"ts_ms":3980},"sequence_number":325,"session_id":"s1","timestamp":3980,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":200,"ts_ms":4000},"sequence_number":326,"session_id":"s1","timestamp":4000,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":2560,"ranges":[[2,123,127]]},"sequence_number":327,"session_id":"s1","timestamp":4000,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":201,"ts_ms":4020},"sequence_number":328,"session_id":"s1","timestamp":4020,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":202,"ts_ms":4040},"sequence_number":329,"session_id":"s1","timestamp":4040,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":203,"ts_ms":4060},"sequence_number":330,"session_id":"s1","timestamp":4060,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":204,"ts_ms":4080},"sequence_number":331,"session_id":"s1","timestamp":4080,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":205,"ts_ms":4100},"sequence_number":332,"session_id":"s1","timestamp":4100,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":2660,"ranges":[[2,128,132]]},"sequence_number":333,"session_id":"s1","timestamp":4100,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":206,"ts_ms":4120},"sequence_number":334,"session_id":"s1","timestamp":4120,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":207,"ts_ms":4140},"sequence_number":335,"session_id":"s1","timestamp":4140,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":208,"ts_ms":4160},"sequence_number":336,"session_id":"s1","timestamp":4160,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":209,"ts_ms":4180},"sequence_number":337,"session_id":"s1","timestamp":4180,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":210,"ts_ms":4200},"sequence_number":338,"session_id":"s1","timestamp":4200,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":2760,"ranges":[[2,133,137]]},"sequence_number":339,"session_id":"s1","timestamp":4200,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":211,"ts_ms":4220},"sequence_number":340,"session_id":"s1","timestamp":4220,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":212,"ts_ms":4240},"sequence_number":341,"session_id":"s1","timestamp":4240,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":213,"ts_ms":4260},"sequence_number":342,"session_id":"s1","timestamp":4260,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":214,"ts_ms":4280},"sequence_number":343,"session_id":"s1","timestamp":4280,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":215,"ts_ms":4300},"sequence_number":344,"session_id":"s1","timestamp":4300,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":2860,"ranges":[[2,138,142]]},"sequence_number":345,"session_id":"s1","timestamp":4300,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":216,"ts_ms":4320},"sequence_number":346,"session_id":"s1","timestamp":4320,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":217,"ts_ms":4340},"sequence_number":347,"session_id":"s1","timestamp":4340,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":218,"ts_ms":4360},"sequence_number":348,"session_id":"s1","timestamp":4360,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":219,"ts_ms":4380},"sequence_number":349,"session_id":"s1","timestamp":4380,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":220,"ts_ms":4400},"sequence_number":350,"session_id":"s1","timestamp":4400,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":2960,"ranges":[[2,143,147]]},"sequence_number":351,"session_id":"s1","timestamp":4400,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":221,"ts_ms":4420},"sequence_number":352,"session_id":"s1","timestamp":4420,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":222,"ts_ms":4440},"sequence_number":353,"session_id":"s1","timestamp":4440,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":223,"ts_ms":4460},"sequence_number":354,"session_id":"s1","timestamp":4460,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":224,"ts_ms":4480},"sequence_number":355,"session_id":"s1","timestamp":4480,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":225,"ts_ms":4500},"sequence_number":356,"session_id":"s1","timestamp":4500,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":3060,"ranges":[[2,148,152]]},"sequence_number":357,"session_id":"s1","timestamp":4500,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":226,"ts_ms":4520},"sequence_number":358,"session_id":"s1","timestamp":4520,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":227,"ts_ms":4540},"sequence_number":359,"session_id":"s1","timestamp":4540,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":228,"ts_ms":4560},"sequence_number":360,"session_id":"s1","timestamp":4560,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":229,"ts_ms":4580},"sequence_number":361,"session_id":"s1","timestamp":4580,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":230,"ts_ms":4600},"sequence_number":362,"session_id":"s1","timestamp":4600,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":3160,"ranges":[[2,153,157]]},"sequence_number":363,"session_id":"s1","timestamp":4600,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":231,"ts_ms":4620},"sequence_number":364,"session_id":"s1","timestamp":4620,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":232,"ts_ms":4640},"sequence_number":365,"session_id":"s1","timestamp":4640,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":233,"ts_ms":4660},"sequence_number":366,"session_id":"s1","timestamp":4660,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":234,"ts_ms":4680},"sequence_number":367,"session_id":"s1","timestamp":4680,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":235,"ts_ms":4700},"sequence_number":368,"session_id":"s1","timestamp":4700,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":3260,"ranges":[[2,158,162]]},"sequence_number":369,"session_id":"s1","timestamp":4700,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":236,"ts_ms":4720},"sequence_number":370,"session_id":"s1","timestamp":4720,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":237,"ts_ms":4740},"sequence_number":371,"session_id":"s1","timestamp":4740,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":238,"ts_ms":4760},"sequence_number":372,"session_id":"s1","timestamp":4760,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":239,"ts_ms":4780},"sequence_number":373,"session_id":"s1","timestamp":4780,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":240,"ts_ms":4800},"sequence_number":374,"session_id":"s1","timestamp":4800,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":3360,"ranges":[[2,163,167]]},"sequence_number":375,"session_id":"s1","timestamp":4800,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":241,"ts_ms":4820},"sequence_number":376,"session_id":"s1","timestamp":4820,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":242,"ts_ms":4840},"sequence_number":377,"session_id":"s1","timestamp":4840,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":243,"ts_ms":4860},"sequence_number":378,"session_id":"s1","timestamp":4860,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":244,"ts_ms":4880},"sequence_number":379,"session_id":"s1","timestamp":4880,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":245,"ts_ms":4900},"sequence_number":380,"session_id":"s1","timestamp":4900,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":3460,"ranges":[[2,168,172]]},"sequence_number":381,"session_id":"s1","timestamp":4900,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":246,"ts_ms":4920},"sequence_number":382,"session_id":"s1","timestamp":4920,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":247,"ts_ms":4940},"sequence_number":383,"session_id":"s1","timestamp":4940,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":248,"ts_ms":4960},"sequence_number":384,"session_id":"s1","timestamp":4960,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":249,"ts_ms":4980},"sequence_number":385,"session_id":"s1","timestamp":4980,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":250,"ts_ms":5000},"sequence_number":386,"session_id":"s1","timestamp":5000,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":3560,"ranges":[[2,173,177]]},"sequence_number":387,"session_id":"s1","timestamp":5000,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":251,"ts_ms":5020},"sequence_number":388,"session_id":"s1","timestamp":5020,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":252,"ts_ms":5040},"sequence_number":389,"session_id":"s1","timestamp":5040,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":253,"ts_ms":5060},"sequence_number":390,"session_id":"s1","timestamp":5060,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":254,"ts_ms":5080},"sequence_number":391,"session_id":"s1","timestamp":5080,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":255,"ts_ms":5100},"sequence_number":392,"session_id":"s1","timestamp":5100,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":3660,"ranges":[[2,178,182]]},"sequence_number":393,"session_id":"s1","timestamp":5100,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":256,"ts_ms":5120},"sequence_number":394,"session_id":"s1","timestamp":5120,"turn_id":1}
-{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":3680,"ranges":[[2,183,183]]},"sequence_number":395,"session_id":"s1","timestamp":5120,"turn_id":1}
-{"event_type":"playback_stopped","generation_id":2,"payload":{"playback_truth":{"chunks":[{"chunk_id":0,"enqueued":true,"played_samples":3840,"samples":3840,"state":"played","text_range":[0,11],"truncated":false},{"chunk_id":1,"enqueued":true,"played_samples":3200,"samples":3200,"state":"played","text_range":[11,21],"truncated":false},{"chunk_id":2,"enqueued":true,"played_samples":3200,"samples":3200,"state":"played","text_range":[21,32],"truncated":false},{"chunk_id":3,"enqueued":true,"played_samples":4160,"samples":4160,"state":"played","text_range":[32,46],"truncated":false},{"chunk_id":4,"enqueued":true,"played_samples":3200,"samples":3200,"state":"played","text_range":[46,56],"truncated":false},{"chunk_id":5,"enqueued":true,"played_samples":3520,"samples":3520,"state":"played","text_range":[56,69],"truncated":false},{"chunk_id":6,"enqueued":true,"played_samples":4160,"samples":4160,"state":"played","text_range":[69,81],"truncated":false},{"chunk_id":7,"enqueued":true,"played_samples":3200,"samples":3200,"state":"played","text_range":[81,94],"truncated":false},{"chunk_id":8,"enqueued":true,"played_samples":3840,"samples":3840,"state":"played","text_range":[94,105],"truncated":false},{"chunk_id":9,"enqueued":true,"played_samples":4160,"samples":4160,"state":"played","text_range":[105,118],"truncated":false},{"chunk_id":10,"enqueued":true,"played_samples":4480,"samples":4480,"state":"played","text_range":[118,134],"truncated":false},{"chunk_id":11,"enqueued":true,"played_samples":3520,"samples":3520,"state":"played","text_range":[134,146],"truncated":false},{"chunk_id":12,"enqueued":true,"played_samples":4160,"samples":4160,"state":"played","text_range":[146,160],"truncated":false},{"chunk_id":13,"enqueued":true,"played_samples":3520,"samples":3520,"state":"played","text_range":[160,175],"truncated":false},{"chunk_id":14,"enqueued":true,"played_samples":3840,"samples":3840,"state":"played","text_range":[175,189],"truncated":false},{"chunk_id":15,"enqueued":true,"played_samples":2880,"samples":2880,"state":"played","text_range":[189,199],"truncated":false}],"enqueued_text":"Sure, I can help with that. Your table for two is booked for Thursday at seven in the evening, and I have added a note about the quiet window seat you asked for earlier today, so everything is ready.","full_text":"Sure, I can help with that. Your table for two is booked for Thursday at seven in the evening, and I have added a note about the quiet window seat you asked for earlier today, so everything is ready. ","heard_range":[0,199],"heard_text":"Sure, I can help with that. Your table for two is booked for Thursday at seven in the evening, and I have added a note about the quiet window seat you asked for earlier today, so everything is ready.","played_ms":3680},"reason":"completed"},"sequence_number":396,"session_id":"s1","timestamp":5120,"turn_id":1}
-{"event_type":"context_committed","generation_id":2,"payload":{"outcome":"completed","role":"user","text":"Book a table for two please."},"sequence_number":397,"session_id":"s1","timestamp":5120,"turn_id":1}
-{"event_type":"context_committed","generation_id":2,"payload":{"interrupted":false,"role":"assistant","text":"Sure, I can help with that. Your table for two is booked for Thursday at seven in the evening, and I have added a note about the quiet window seat you asked for earlier today, so everything is ready."},"sequence_number":398,"session_id":"s1","timestamp":5120,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":257,"ts_ms":5140},"sequence_number":399,"session_id":"s1","timestamp":5140,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":258,"ts_ms":5160},"sequence_number":400,"session_id":"s1","timestamp":5160,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":259,"ts_ms":5180},"sequence_number":401,"session_id":"s1","timestamp":5180,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":260,"ts_ms":5200},"sequence_number":402,"session_id":"s1","timestamp":5200,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":261,"ts_ms":5220},"sequence_number":403,"session_id":"s1","timestamp":5220,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":262,"ts_ms":5240},"sequence_number":404,"session_id":"s1","timestamp":5240,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":263,"ts_ms":5260},"sequence_number":405,"session_id":"s1","timestamp":5260,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":264,"ts_ms":5280},"sequence_number":406,"session_id":"s1","timestamp":5280,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":265,"ts_ms":5300},"sequence_number":407,"session_id":"s1","timestamp":5300,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":266,"ts_ms":5320},"sequence_number":408,"session_id":"s1","timestamp":5320,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":267,"ts_ms":5340},"sequence_number":409,"session_id":"s1","timestamp":5340,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":268,"ts_ms":5360},"sequence_number":410,"session_id":"s1","timestamp":5360,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":269,"ts_ms":5380},"sequence_number":411,"session_id":"s1","timestamp":5380,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":270,"ts_ms":5400},"sequence_number":412,"session_id":"s1","timestamp":5400,"turn_id":1}
-{"event_type":"audio_frame","generation_id":null,"payload":{"seq":271,"ts_ms":5420},"sequence_number":413,"session_id":"s1","timestamp":5420,"turn_id":1}
-{"event_type":"session_closed","generation_id":null,"payload":{"overdue_task_count":0,"queue_max_depth":{"asr_in":1,"playback":75,"text":3},"reason":"explicit_close","residual":{"asr_in":1,"playback":0,"text":0}},"sequence_number":414,"session_id":"s1","timestamp":5420,"turn_id":1}
+{"event_type":"turn_started","generation_id":null,"payload":{"cause":"speech_start","start_ms":0},"sequence_number":4,"session_id":"s1","timestamp":40,"turn_id":1}
+{"event_type":"speech_start","generation_id":null,"payload":{"epoch":1,"ts_ms":0},"sequence_number":5,"session_id":"s1","timestamp":40,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":3,"ts_ms":60},"sequence_number":6,"session_id":"s1","timestamp":60,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":4,"ts_ms":80},"sequence_number":7,"session_id":"s1","timestamp":80,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":5,"ts_ms":100},"sequence_number":8,"session_id":"s1","timestamp":100,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":6,"ts_ms":120},"sequence_number":9,"session_id":"s1","timestamp":120,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":7,"ts_ms":140},"sequence_number":10,"session_id":"s1","timestamp":140,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":8,"ts_ms":160},"sequence_number":11,"session_id":"s1","timestamp":160,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":9,"ts_ms":180},"sequence_number":12,"session_id":"s1","timestamp":180,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":10,"ts_ms":200},"sequence_number":13,"session_id":"s1","timestamp":200,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":11,"ts_ms":220},"sequence_number":14,"session_id":"s1","timestamp":220,"turn_id":1}
+{"event_type":"asr_partial","generation_id":null,"payload":{"segment_end_ms":100,"segment_id":0,"segment_start_ms":0,"text":"Book"},"sequence_number":15,"session_id":"s1","timestamp":220,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":12,"ts_ms":240},"sequence_number":16,"session_id":"s1","timestamp":240,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":13,"ts_ms":260},"sequence_number":17,"session_id":"s1","timestamp":260,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":14,"ts_ms":280},"sequence_number":18,"session_id":"s1","timestamp":280,"turn_id":1}
+{"event_type":"asr_partial","generation_id":null,"payload":{"segment_end_ms":160,"segment_id":0,"segment_start_ms":0,"text":"Book a"},"sequence_number":19,"session_id":"s1","timestamp":280,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":15,"ts_ms":300},"sequence_number":20,"session_id":"s1","timestamp":300,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":16,"ts_ms":320},"sequence_number":21,"session_id":"s1","timestamp":320,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":17,"ts_ms":340},"sequence_number":22,"session_id":"s1","timestamp":340,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":18,"ts_ms":360},"sequence_number":23,"session_id":"s1","timestamp":360,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":19,"ts_ms":380},"sequence_number":24,"session_id":"s1","timestamp":380,"turn_id":1}
+{"event_type":"asr_partial","generation_id":null,"payload":{"segment_end_ms":260,"segment_id":0,"segment_start_ms":0,"text":"Book a table"},"sequence_number":25,"session_id":"s1","timestamp":380,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":20,"ts_ms":400},"sequence_number":26,"session_id":"s1","timestamp":400,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":21,"ts_ms":420},"sequence_number":27,"session_id":"s1","timestamp":420,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":22,"ts_ms":440},"sequence_number":28,"session_id":"s1","timestamp":440,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":23,"ts_ms":460},"sequence_number":29,"session_id":"s1","timestamp":460,"turn_id":1}
+{"event_type":"asr_partial","generation_id":null,"payload":{"segment_end_ms":340,"segment_id":0,"segment_start_ms":0,"text":"Book a table for"},"sequence_number":30,"session_id":"s1","timestamp":460,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":24,"ts_ms":480},"sequence_number":31,"session_id":"s1","timestamp":480,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":25,"ts_ms":500},"sequence_number":32,"session_id":"s1","timestamp":500,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":26,"ts_ms":520},"sequence_number":33,"session_id":"s1","timestamp":520,"turn_id":1}
+{"event_type":"script_marker","generation_id":null,"payload":{"eval_only":true,"index":0,"phase":"end","segment":"speech","text":"Book a table for two please."},"sequence_number":34,"session_id":"s1","timestamp":540,"turn_id":null}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":27,"ts_ms":540},"sequence_number":35,"session_id":"s1","timestamp":540,"turn_id":1}
+{"event_type":"asr_partial","generation_id":null,"payload":{"segment_end_ms":420,"segment_id":0,"segment_start_ms":0,"text":"Book a table for two"},"sequence_number":36,"session_id":"s1","timestamp":540,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":28,"ts_ms":560},"sequence_number":37,"session_id":"s1","timestamp":560,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":29,"ts_ms":580},"sequence_number":38,"session_id":"s1","timestamp":580,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":30,"ts_ms":600},"sequence_number":39,"session_id":"s1","timestamp":600,"turn_id":1}
+{"event_type":"speech_end","generation_id":null,"payload":{"epoch":1,"ts_ms":540},"sequence_number":40,"session_id":"s1","timestamp":600,"turn_id":1}
+{"event_type":"turn_score","generation_id":null,"payload":{"confidence":0.55,"decision":"uncertain","epoch":1,"latency_ms":0,"level":1,"p":0.7,"rules":["trailing_content_word"],"text_version":5},"sequence_number":41,"session_id":"s1","timestamp":600,"turn_id":1}
+{"event_type":"speculation_started","generation_id":1,"payload":{"text":"Book a table for two"},"sequence_number":42,"session_id":"s1","timestamp":600,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":31,"ts_ms":620},"sequence_number":43,"session_id":"s1","timestamp":620,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":32,"ts_ms":640},"sequence_number":44,"session_id":"s1","timestamp":640,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":33,"ts_ms":660},"sequence_number":45,"session_id":"s1","timestamp":660,"turn_id":1}
+{"event_type":"asr_partial","generation_id":null,"payload":{"segment_end_ms":540,"segment_id":0,"segment_start_ms":0,"text":"Book a table for two please"},"sequence_number":46,"session_id":"s1","timestamp":660,"turn_id":1}
+{"event_type":"turn_score","generation_id":null,"payload":{"confidence":0.55,"decision":"uncertain","epoch":1,"latency_ms":0,"level":1,"p":0.7,"rules":["trailing_content_word"],"text_version":6},"sequence_number":47,"session_id":"s1","timestamp":660,"turn_id":1}
+{"event_type":"generation_cancelled","generation_id":1,"payload":{"duplicate":false,"reason":"speculation_superseded"},"sequence_number":48,"session_id":"s1","timestamp":660,"turn_id":1}
+{"event_type":"stale_event_dropped","generation_id":1,"payload":{"frames":0,"gate":"purge","phase":"purge","unit":"frame"},"sequence_number":49,"session_id":"s1","timestamp":660,"turn_id":1}
+{"event_type":"speculation_started","generation_id":2,"payload":{"text":"Book a table for two please"},"sequence_number":50,"session_id":"s1","timestamp":660,"turn_id":1}
+{"event_type":"stale_event_dropped","generation_id":1,"payload":{"gate":"2","phase":"late","unit":"eos"},"sequence_number":51,"session_id":"s1","timestamp":660,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":34,"ts_ms":680},"sequence_number":52,"session_id":"s1","timestamp":680,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":35,"ts_ms":700},"sequence_number":53,"session_id":"s1","timestamp":700,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":36,"ts_ms":720},"sequence_number":54,"session_id":"s1","timestamp":720,"turn_id":1}
+{"event_type":"asr_final","generation_id":null,"payload":{"segment_end_ms":540,"segment_id":0,"segment_start_ms":0,"text":"Book a table for two please."},"sequence_number":55,"session_id":"s1","timestamp":720,"turn_id":1}
+{"event_type":"turn_score","generation_id":null,"payload":{"confidence":0.8,"decision":"commit_candidate","epoch":1,"latency_ms":0,"level":1,"p":0.95,"rules":["terminal_punct"],"text_version":7},"sequence_number":56,"session_id":"s1","timestamp":720,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":37,"ts_ms":740},"sequence_number":57,"session_id":"s1","timestamp":740,"turn_id":1}
+{"event_type":"endpoint_committed","generation_id":2,"payload":{"decided_at":740,"level":1,"p":0.95,"reason":"score_threshold","text":"Book a table for two please.","text_source":"final","threshold":0.85},"sequence_number":58,"session_id":"s1","timestamp":740,"turn_id":1}
+{"event_type":"speculation_adopted","generation_id":2,"payload":{"text":"Book a table for two please"},"sequence_number":59,"session_id":"s1","timestamp":740,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":38,"ts_ms":760},"sequence_number":60,"session_id":"s1","timestamp":760,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":39,"ts_ms":780},"sequence_number":61,"session_id":"s1","timestamp":780,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":40,"ts_ms":800},"sequence_number":62,"session_id":"s1","timestamp":800,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":41,"ts_ms":820},"sequence_number":63,"session_id":"s1","timestamp":820,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":42,"ts_ms":840},"sequence_number":64,"session_id":"s1","timestamp":840,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":43,"ts_ms":860},"sequence_number":65,"session_id":"s1","timestamp":860,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":44,"ts_ms":880},"sequence_number":66,"session_id":"s1","timestamp":880,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":45,"ts_ms":900},"sequence_number":67,"session_id":"s1","timestamp":900,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":46,"ts_ms":920},"sequence_number":68,"session_id":"s1","timestamp":920,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":47,"ts_ms":940},"sequence_number":69,"session_id":"s1","timestamp":940,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":48,"ts_ms":960},"sequence_number":70,"session_id":"s1","timestamp":960,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"Sure, "},"sequence_number":71,"session_id":"s1","timestamp":972,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":49,"ts_ms":980},"sequence_number":72,"session_id":"s1","timestamp":980,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":50,"ts_ms":1000},"sequence_number":73,"session_id":"s1","timestamp":1000,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":51,"ts_ms":1020},"sequence_number":74,"session_id":"s1","timestamp":1020,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"I "},"sequence_number":75,"session_id":"s1","timestamp":1035,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":52,"ts_ms":1040},"sequence_number":76,"session_id":"s1","timestamp":1040,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":53,"ts_ms":1060},"sequence_number":77,"session_id":"s1","timestamp":1060,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":54,"ts_ms":1080},"sequence_number":78,"session_id":"s1","timestamp":1080,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"can "},"sequence_number":79,"session_id":"s1","timestamp":1086,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":55,"ts_ms":1100},"sequence_number":80,"session_id":"s1","timestamp":1100,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":56,"ts_ms":1120},"sequence_number":81,"session_id":"s1","timestamp":1120,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":57,"ts_ms":1140},"sequence_number":82,"session_id":"s1","timestamp":1140,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"help "},"sequence_number":83,"session_id":"s1","timestamp":1144,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":58,"ts_ms":1160},"sequence_number":84,"session_id":"s1","timestamp":1160,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":59,"ts_ms":1180},"sequence_number":85,"session_id":"s1","timestamp":1180,"turn_id":1}
+{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":0,"samples":3840,"text_range":[0,11],"trimmed_samples":0},"sequence_number":86,"session_id":"s1","timestamp":1184,"turn_id":1}
+{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":0,"depth":12,"frames":12,"queue":"playback"},"sequence_number":87,"session_id":"s1","timestamp":1184,"turn_id":1}
+{"event_type":"playback_started","generation_id":2,"payload":{},"sequence_number":88,"session_id":"s1","timestamp":1200,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":60,"ts_ms":1200},"sequence_number":89,"session_id":"s1","timestamp":1200,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"with "},"sequence_number":90,"session_id":"s1","timestamp":1210,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":61,"ts_ms":1220},"sequence_number":91,"session_id":"s1","timestamp":1220,"turn_id":1}
+{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":1,"samples":3200,"text_range":[11,21],"trimmed_samples":0},"sequence_number":92,"session_id":"s1","timestamp":1237,"turn_id":1}
+{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":1,"depth":20,"frames":10,"queue":"playback"},"sequence_number":93,"session_id":"s1","timestamp":1237,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":62,"ts_ms":1240},"sequence_number":94,"session_id":"s1","timestamp":1240,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":63,"ts_ms":1260},"sequence_number":95,"session_id":"s1","timestamp":1260,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"that. "},"sequence_number":96,"session_id":"s1","timestamp":1275,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":64,"ts_ms":1280},"sequence_number":97,"session_id":"s1","timestamp":1280,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":100,"ranges":[[2,0,4]]},"sequence_number":98,"session_id":"s1","timestamp":1300,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":65,"ts_ms":1300},"sequence_number":99,"session_id":"s1","timestamp":1300,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":66,"ts_ms":1320},"sequence_number":100,"session_id":"s1","timestamp":1320,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"Your "},"sequence_number":101,"session_id":"s1","timestamp":1337,"turn_id":1}
+{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":2,"samples":3200,"text_range":[21,32],"trimmed_samples":0},"sequence_number":102,"session_id":"s1","timestamp":1337,"turn_id":1}
+{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":2,"depth":25,"frames":10,"queue":"playback"},"sequence_number":103,"session_id":"s1","timestamp":1337,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":67,"ts_ms":1340},"sequence_number":104,"session_id":"s1","timestamp":1340,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":68,"ts_ms":1360},"sequence_number":105,"session_id":"s1","timestamp":1360,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":69,"ts_ms":1380},"sequence_number":106,"session_id":"s1","timestamp":1380,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"table "},"sequence_number":107,"session_id":"s1","timestamp":1396,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":70,"ts_ms":1400},"sequence_number":108,"session_id":"s1","timestamp":1400,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":200,"ranges":[[2,5,9]]},"sequence_number":109,"session_id":"s1","timestamp":1400,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":71,"ts_ms":1420},"sequence_number":110,"session_id":"s1","timestamp":1420,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":72,"ts_ms":1440},"sequence_number":111,"session_id":"s1","timestamp":1440,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":73,"ts_ms":1460},"sequence_number":112,"session_id":"s1","timestamp":1460,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"for "},"sequence_number":113,"session_id":"s1","timestamp":1461,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":74,"ts_ms":1480},"sequence_number":114,"session_id":"s1","timestamp":1480,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":75,"ts_ms":1500},"sequence_number":115,"session_id":"s1","timestamp":1500,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":300,"ranges":[[2,10,14]]},"sequence_number":116,"session_id":"s1","timestamp":1500,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":76,"ts_ms":1520},"sequence_number":117,"session_id":"s1","timestamp":1520,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"two "},"sequence_number":118,"session_id":"s1","timestamp":1522,"turn_id":1}
+{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":3,"samples":4160,"text_range":[32,46],"trimmed_samples":0},"sequence_number":119,"session_id":"s1","timestamp":1522,"turn_id":1}
+{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":3,"depth":28,"frames":13,"queue":"playback"},"sequence_number":120,"session_id":"s1","timestamp":1522,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":77,"ts_ms":1540},"sequence_number":121,"session_id":"s1","timestamp":1540,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":78,"ts_ms":1560},"sequence_number":122,"session_id":"s1","timestamp":1560,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":79,"ts_ms":1580},"sequence_number":123,"session_id":"s1","timestamp":1580,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"is "},"sequence_number":124,"session_id":"s1","timestamp":1590,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":400,"ranges":[[2,15,19]]},"sequence_number":125,"session_id":"s1","timestamp":1600,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":80,"ts_ms":1600},"sequence_number":126,"session_id":"s1","timestamp":1600,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":81,"ts_ms":1620},"sequence_number":127,"session_id":"s1","timestamp":1620,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":82,"ts_ms":1640},"sequence_number":128,"session_id":"s1","timestamp":1640,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"booked "},"sequence_number":129,"session_id":"s1","timestamp":1646,"turn_id":1}
+{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":4,"samples":3200,"text_range":[46,56],"trimmed_samples":0},"sequence_number":130,"session_id":"s1","timestamp":1646,"turn_id":1}
+{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":4,"depth":32,"frames":10,"queue":"playback"},"sequence_number":131,"session_id":"s1","timestamp":1646,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":83,"ts_ms":1660},"sequence_number":132,"session_id":"s1","timestamp":1660,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":84,"ts_ms":1680},"sequence_number":133,"session_id":"s1","timestamp":1680,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":500,"ranges":[[2,20,24]]},"sequence_number":134,"session_id":"s1","timestamp":1700,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":85,"ts_ms":1700},"sequence_number":135,"session_id":"s1","timestamp":1700,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"for "},"sequence_number":136,"session_id":"s1","timestamp":1712,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":86,"ts_ms":1720},"sequence_number":137,"session_id":"s1","timestamp":1720,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":87,"ts_ms":1740},"sequence_number":138,"session_id":"s1","timestamp":1740,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":88,"ts_ms":1760},"sequence_number":139,"session_id":"s1","timestamp":1760,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"Thursday "},"sequence_number":140,"session_id":"s1","timestamp":1766,"turn_id":1}
+{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":5,"samples":3520,"text_range":[56,69],"trimmed_samples":0},"sequence_number":141,"session_id":"s1","timestamp":1766,"turn_id":1}
+{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":5,"depth":37,"frames":11,"queue":"playback"},"sequence_number":142,"session_id":"s1","timestamp":1766,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":89,"ts_ms":1780},"sequence_number":143,"session_id":"s1","timestamp":1780,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":600,"ranges":[[2,25,29]]},"sequence_number":144,"session_id":"s1","timestamp":1800,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":90,"ts_ms":1800},"sequence_number":145,"session_id":"s1","timestamp":1800,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":91,"ts_ms":1820},"sequence_number":146,"session_id":"s1","timestamp":1820,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"at "},"sequence_number":147,"session_id":"s1","timestamp":1825,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":92,"ts_ms":1840},"sequence_number":148,"session_id":"s1","timestamp":1840,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":93,"ts_ms":1860},"sequence_number":149,"session_id":"s1","timestamp":1860,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"seven "},"sequence_number":150,"session_id":"s1","timestamp":1879,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":94,"ts_ms":1880},"sequence_number":151,"session_id":"s1","timestamp":1880,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":700,"ranges":[[2,30,34]]},"sequence_number":152,"session_id":"s1","timestamp":1900,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":95,"ts_ms":1900},"sequence_number":153,"session_id":"s1","timestamp":1900,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":96,"ts_ms":1920},"sequence_number":154,"session_id":"s1","timestamp":1920,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"in "},"sequence_number":155,"session_id":"s1","timestamp":1932,"turn_id":1}
+{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":6,"samples":4160,"text_range":[69,81],"trimmed_samples":0},"sequence_number":156,"session_id":"s1","timestamp":1932,"turn_id":1}
+{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":6,"depth":42,"frames":13,"queue":"playback"},"sequence_number":157,"session_id":"s1","timestamp":1932,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":97,"ts_ms":1940},"sequence_number":158,"session_id":"s1","timestamp":1940,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":98,"ts_ms":1960},"sequence_number":159,"session_id":"s1","timestamp":1960,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":99,"ts_ms":1980},"sequence_number":160,"session_id":"s1","timestamp":1980,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":800,"ranges":[[2,35,39]]},"sequence_number":161,"session_id":"s1","timestamp":2000,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":100,"ts_ms":2000},"sequence_number":162,"session_id":"s1","timestamp":2000,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"the "},"sequence_number":163,"session_id":"s1","timestamp":2001,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":101,"ts_ms":2020},"sequence_number":164,"session_id":"s1","timestamp":2020,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":102,"ts_ms":2040},"sequence_number":165,"session_id":"s1","timestamp":2040,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"evening, "},"sequence_number":166,"session_id":"s1","timestamp":2059,"turn_id":1}
+{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":7,"samples":3200,"text_range":[81,94],"trimmed_samples":0},"sequence_number":167,"session_id":"s1","timestamp":2059,"turn_id":1}
+{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":7,"depth":46,"frames":10,"queue":"playback"},"sequence_number":168,"session_id":"s1","timestamp":2059,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":103,"ts_ms":2060},"sequence_number":169,"session_id":"s1","timestamp":2060,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":104,"ts_ms":2080},"sequence_number":170,"session_id":"s1","timestamp":2080,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":900,"ranges":[[2,40,44]]},"sequence_number":171,"session_id":"s1","timestamp":2100,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":105,"ts_ms":2100},"sequence_number":172,"session_id":"s1","timestamp":2100,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":106,"ts_ms":2120},"sequence_number":173,"session_id":"s1","timestamp":2120,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"and "},"sequence_number":174,"session_id":"s1","timestamp":2126,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":107,"ts_ms":2140},"sequence_number":175,"session_id":"s1","timestamp":2140,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":108,"ts_ms":2160},"sequence_number":176,"session_id":"s1","timestamp":2160,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":109,"ts_ms":2180},"sequence_number":177,"session_id":"s1","timestamp":2180,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"I "},"sequence_number":178,"session_id":"s1","timestamp":2195,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":1000,"ranges":[[2,45,49]]},"sequence_number":179,"session_id":"s1","timestamp":2200,"turn_id":1}
+{"event_type":"script_marker","generation_id":null,"payload":{"eval_only":true,"index":2,"phase":"start","segment":"noise","text":""},"sequence_number":180,"session_id":"s1","timestamp":2200,"turn_id":null}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":110,"ts_ms":2200},"sequence_number":181,"session_id":"s1","timestamp":2200,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":111,"ts_ms":2220},"sequence_number":182,"session_id":"s1","timestamp":2220,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":112,"ts_ms":2240},"sequence_number":183,"session_id":"s1","timestamp":2240,"turn_id":1}
+{"event_type":"speech_start","generation_id":null,"payload":{"epoch":2,"ts_ms":2200},"sequence_number":184,"session_id":"s1","timestamp":2240,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":1060,"ranges":[[2,50,52]]},"sequence_number":185,"session_id":"s1","timestamp":2240,"turn_id":1}
+{"event_type":"playback_stopped","generation_id":2,"payload":{"position_samples":16960,"reason":"paused_pending_decision"},"sequence_number":186,"session_id":"s1","timestamp":2240,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"have "},"sequence_number":187,"session_id":"s1","timestamp":2249,"turn_id":1}
+{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":8,"samples":3840,"text_range":[94,105],"trimmed_samples":0},"sequence_number":188,"session_id":"s1","timestamp":2249,"turn_id":1}
+{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":8,"depth":48,"frames":12,"queue":"playback"},"sequence_number":189,"session_id":"s1","timestamp":2249,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":113,"ts_ms":2260},"sequence_number":190,"session_id":"s1","timestamp":2260,"turn_id":1}
+{"event_type":"script_marker","generation_id":null,"payload":{"eval_only":true,"index":2,"phase":"end","segment":"noise","text":""},"sequence_number":191,"session_id":"s1","timestamp":2280,"turn_id":null}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":114,"ts_ms":2280},"sequence_number":192,"session_id":"s1","timestamp":2280,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":115,"ts_ms":2300},"sequence_number":193,"session_id":"s1","timestamp":2300,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"added "},"sequence_number":194,"session_id":"s1","timestamp":2308,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":116,"ts_ms":2320},"sequence_number":195,"session_id":"s1","timestamp":2320,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":117,"ts_ms":2340},"sequence_number":196,"session_id":"s1","timestamp":2340,"turn_id":1}
+{"event_type":"speech_end","generation_id":null,"payload":{"epoch":2,"ts_ms":2280},"sequence_number":197,"session_id":"s1","timestamp":2340,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":118,"ts_ms":2360},"sequence_number":198,"session_id":"s1","timestamp":2360,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"a "},"sequence_number":199,"session_id":"s1","timestamp":2361,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":119,"ts_ms":2380},"sequence_number":200,"session_id":"s1","timestamp":2380,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":120,"ts_ms":2400},"sequence_number":201,"session_id":"s1","timestamp":2400,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"note "},"sequence_number":202,"session_id":"s1","timestamp":2413,"turn_id":1}
+{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":9,"samples":4160,"text_range":[105,118],"trimmed_samples":0},"sequence_number":203,"session_id":"s1","timestamp":2413,"turn_id":1}
+{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":9,"depth":61,"frames":13,"queue":"playback"},"sequence_number":204,"session_id":"s1","timestamp":2413,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":121,"ts_ms":2420},"sequence_number":205,"session_id":"s1","timestamp":2420,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":122,"ts_ms":2440},"sequence_number":206,"session_id":"s1","timestamp":2440,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":123,"ts_ms":2460},"sequence_number":207,"session_id":"s1","timestamp":2460,"turn_id":1}
+{"event_type":"asr_final","generation_id":null,"payload":{"segment_end_ms":2280,"segment_id":1,"segment_start_ms":2200,"text":""},"sequence_number":208,"session_id":"s1","timestamp":2460,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"about "},"sequence_number":209,"session_id":"s1","timestamp":2473,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":124,"ts_ms":2480},"sequence_number":210,"session_id":"s1","timestamp":2480,"turn_id":1}
+{"event_type":"bargein_decision","generation_id":2,"payload":{"late_interrupt":false,"result":"noise","rule":"noise_empty_final","scorer":null,"scores":null,"utterance_id":1,"words":[]},"sequence_number":211,"session_id":"s1","timestamp":2480,"turn_id":1}
+{"event_type":"playback_resumed","generation_id":2,"payload":{"paused_ms":240},"sequence_number":212,"session_id":"s1","timestamp":2480,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":125,"ts_ms":2500},"sequence_number":213,"session_id":"s1","timestamp":2500,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":126,"ts_ms":2520},"sequence_number":214,"session_id":"s1","timestamp":2520,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"the "},"sequence_number":215,"session_id":"s1","timestamp":2538,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":127,"ts_ms":2540},"sequence_number":216,"session_id":"s1","timestamp":2540,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":128,"ts_ms":2560},"sequence_number":217,"session_id":"s1","timestamp":2560,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":129,"ts_ms":2580},"sequence_number":218,"session_id":"s1","timestamp":2580,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":1160,"ranges":[[2,53,57]]},"sequence_number":219,"session_id":"s1","timestamp":2600,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":130,"ts_ms":2600},"sequence_number":220,"session_id":"s1","timestamp":2600,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"quiet "},"sequence_number":221,"session_id":"s1","timestamp":2605,"turn_id":1}
+{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":10,"samples":4480,"text_range":[118,134],"trimmed_samples":0},"sequence_number":222,"session_id":"s1","timestamp":2605,"turn_id":1}
+{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":10,"depth":69,"frames":14,"queue":"playback"},"sequence_number":223,"session_id":"s1","timestamp":2605,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":131,"ts_ms":2620},"sequence_number":224,"session_id":"s1","timestamp":2620,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":132,"ts_ms":2640},"sequence_number":225,"session_id":"s1","timestamp":2640,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"window "},"sequence_number":226,"session_id":"s1","timestamp":2658,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":133,"ts_ms":2660},"sequence_number":227,"session_id":"s1","timestamp":2660,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":134,"ts_ms":2680},"sequence_number":228,"session_id":"s1","timestamp":2680,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":135,"ts_ms":2700},"sequence_number":229,"session_id":"s1","timestamp":2700,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":1260,"ranges":[[2,58,62]]},"sequence_number":230,"session_id":"s1","timestamp":2700,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"seat "},"sequence_number":231,"session_id":"s1","timestamp":2719,"turn_id":1}
+{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":11,"samples":3520,"text_range":[134,146],"trimmed_samples":0},"sequence_number":232,"session_id":"s1","timestamp":2719,"turn_id":1}
+{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":11,"depth":75,"frames":11,"queue":"playback"},"sequence_number":233,"session_id":"s1","timestamp":2719,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":136,"ts_ms":2720},"sequence_number":234,"session_id":"s1","timestamp":2720,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":137,"ts_ms":2740},"sequence_number":235,"session_id":"s1","timestamp":2740,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":138,"ts_ms":2760},"sequence_number":236,"session_id":"s1","timestamp":2760,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":139,"ts_ms":2780},"sequence_number":237,"session_id":"s1","timestamp":2780,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"you "},"sequence_number":238,"session_id":"s1","timestamp":2782,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":140,"ts_ms":2800},"sequence_number":239,"session_id":"s1","timestamp":2800,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":1360,"ranges":[[2,63,67]]},"sequence_number":240,"session_id":"s1","timestamp":2800,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":141,"ts_ms":2820},"sequence_number":241,"session_id":"s1","timestamp":2820,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":142,"ts_ms":2840},"sequence_number":242,"session_id":"s1","timestamp":2840,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"asked "},"sequence_number":243,"session_id":"s1","timestamp":2842,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":143,"ts_ms":2860},"sequence_number":244,"session_id":"s1","timestamp":2860,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":144,"ts_ms":2880},"sequence_number":245,"session_id":"s1","timestamp":2880,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":145,"ts_ms":2900},"sequence_number":246,"session_id":"s1","timestamp":2900,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":1460,"ranges":[[2,68,72]]},"sequence_number":247,"session_id":"s1","timestamp":2900,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"for "},"sequence_number":248,"session_id":"s1","timestamp":2911,"turn_id":1}
+{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":12,"samples":4160,"text_range":[146,160],"trimmed_samples":0},"sequence_number":249,"session_id":"s1","timestamp":2911,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":146,"ts_ms":2920},"sequence_number":250,"session_id":"s1","timestamp":2920,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":147,"ts_ms":2940},"sequence_number":251,"session_id":"s1","timestamp":2940,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":148,"ts_ms":2960},"sequence_number":252,"session_id":"s1","timestamp":2960,"turn_id":1}
+{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":12,"depth":75,"frames":13,"queue":"playback"},"sequence_number":253,"session_id":"s1","timestamp":2960,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":149,"ts_ms":2980},"sequence_number":254,"session_id":"s1","timestamp":2980,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"earlier "},"sequence_number":255,"session_id":"s1","timestamp":2981,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":150,"ts_ms":3000},"sequence_number":256,"session_id":"s1","timestamp":3000,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":1560,"ranges":[[2,73,77]]},"sequence_number":257,"session_id":"s1","timestamp":3000,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":151,"ts_ms":3020},"sequence_number":258,"session_id":"s1","timestamp":3020,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"today, "},"sequence_number":259,"session_id":"s1","timestamp":3037,"turn_id":1}
+{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":13,"samples":3520,"text_range":[160,175],"trimmed_samples":0},"sequence_number":260,"session_id":"s1","timestamp":3037,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":152,"ts_ms":3040},"sequence_number":261,"session_id":"s1","timestamp":3040,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":153,"ts_ms":3060},"sequence_number":262,"session_id":"s1","timestamp":3060,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":154,"ts_ms":3080},"sequence_number":263,"session_id":"s1","timestamp":3080,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":155,"ts_ms":3100},"sequence_number":264,"session_id":"s1","timestamp":3100,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":1660,"ranges":[[2,78,82]]},"sequence_number":265,"session_id":"s1","timestamp":3100,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"so "},"sequence_number":266,"session_id":"s1","timestamp":3104,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":156,"ts_ms":3120},"sequence_number":267,"session_id":"s1","timestamp":3120,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":157,"ts_ms":3140},"sequence_number":268,"session_id":"s1","timestamp":3140,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":158,"ts_ms":3160},"sequence_number":269,"session_id":"s1","timestamp":3160,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"everything "},"sequence_number":270,"session_id":"s1","timestamp":3169,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":159,"ts_ms":3180},"sequence_number":271,"session_id":"s1","timestamp":3180,"turn_id":1}
+{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":13,"depth":75,"frames":11,"queue":"playback"},"sequence_number":272,"session_id":"s1","timestamp":3180,"turn_id":1}
+{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":14,"samples":3840,"text_range":[175,189],"trimmed_samples":0},"sequence_number":273,"session_id":"s1","timestamp":3180,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":160,"ts_ms":3200},"sequence_number":274,"session_id":"s1","timestamp":3200,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":1760,"ranges":[[2,83,87]]},"sequence_number":275,"session_id":"s1","timestamp":3200,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":161,"ts_ms":3220},"sequence_number":276,"session_id":"s1","timestamp":3220,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"is "},"sequence_number":277,"session_id":"s1","timestamp":3233,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":162,"ts_ms":3240},"sequence_number":278,"session_id":"s1","timestamp":3240,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":163,"ts_ms":3260},"sequence_number":279,"session_id":"s1","timestamp":3260,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":164,"ts_ms":3280},"sequence_number":280,"session_id":"s1","timestamp":3280,"turn_id":1}
+{"event_type":"llm_chunk","generation_id":2,"payload":{"text":"ready. "},"sequence_number":281,"session_id":"s1","timestamp":3299,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":165,"ts_ms":3300},"sequence_number":282,"session_id":"s1","timestamp":3300,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":1860,"ranges":[[2,88,92]]},"sequence_number":283,"session_id":"s1","timestamp":3300,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":166,"ts_ms":3320},"sequence_number":284,"session_id":"s1","timestamp":3320,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":167,"ts_ms":3340},"sequence_number":285,"session_id":"s1","timestamp":3340,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":168,"ts_ms":3360},"sequence_number":286,"session_id":"s1","timestamp":3360,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":169,"ts_ms":3380},"sequence_number":287,"session_id":"s1","timestamp":3380,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":170,"ts_ms":3400},"sequence_number":288,"session_id":"s1","timestamp":3400,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":1960,"ranges":[[2,93,97]]},"sequence_number":289,"session_id":"s1","timestamp":3400,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":171,"ts_ms":3420},"sequence_number":290,"session_id":"s1","timestamp":3420,"turn_id":1}
+{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":14,"depth":75,"frames":12,"queue":"playback"},"sequence_number":291,"session_id":"s1","timestamp":3420,"turn_id":1}
+{"event_type":"tts_chunk","generation_id":2,"payload":{"chunk_id":15,"samples":2880,"text_range":[189,199],"trimmed_samples":0},"sequence_number":292,"session_id":"s1","timestamp":3420,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":172,"ts_ms":3440},"sequence_number":293,"session_id":"s1","timestamp":3440,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":173,"ts_ms":3460},"sequence_number":294,"session_id":"s1","timestamp":3460,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":174,"ts_ms":3480},"sequence_number":295,"session_id":"s1","timestamp":3480,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":175,"ts_ms":3500},"sequence_number":296,"session_id":"s1","timestamp":3500,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":2060,"ranges":[[2,98,102]]},"sequence_number":297,"session_id":"s1","timestamp":3500,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":176,"ts_ms":3520},"sequence_number":298,"session_id":"s1","timestamp":3520,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":177,"ts_ms":3540},"sequence_number":299,"session_id":"s1","timestamp":3540,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":178,"ts_ms":3560},"sequence_number":300,"session_id":"s1","timestamp":3560,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":179,"ts_ms":3580},"sequence_number":301,"session_id":"s1","timestamp":3580,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":180,"ts_ms":3600},"sequence_number":302,"session_id":"s1","timestamp":3600,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":2160,"ranges":[[2,103,107]]},"sequence_number":303,"session_id":"s1","timestamp":3600,"turn_id":1}
+{"event_type":"audio_enqueued","generation_id":2,"payload":{"chunk_id":15,"depth":75,"frames":9,"queue":"playback"},"sequence_number":304,"session_id":"s1","timestamp":3600,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":181,"ts_ms":3620},"sequence_number":305,"session_id":"s1","timestamp":3620,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":182,"ts_ms":3640},"sequence_number":306,"session_id":"s1","timestamp":3640,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":183,"ts_ms":3660},"sequence_number":307,"session_id":"s1","timestamp":3660,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":184,"ts_ms":3680},"sequence_number":308,"session_id":"s1","timestamp":3680,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":185,"ts_ms":3700},"sequence_number":309,"session_id":"s1","timestamp":3700,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":2260,"ranges":[[2,108,112]]},"sequence_number":310,"session_id":"s1","timestamp":3700,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":186,"ts_ms":3720},"sequence_number":311,"session_id":"s1","timestamp":3720,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":187,"ts_ms":3740},"sequence_number":312,"session_id":"s1","timestamp":3740,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":188,"ts_ms":3760},"sequence_number":313,"session_id":"s1","timestamp":3760,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":189,"ts_ms":3780},"sequence_number":314,"session_id":"s1","timestamp":3780,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":190,"ts_ms":3800},"sequence_number":315,"session_id":"s1","timestamp":3800,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":2360,"ranges":[[2,113,117]]},"sequence_number":316,"session_id":"s1","timestamp":3800,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":191,"ts_ms":3820},"sequence_number":317,"session_id":"s1","timestamp":3820,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":192,"ts_ms":3840},"sequence_number":318,"session_id":"s1","timestamp":3840,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":193,"ts_ms":3860},"sequence_number":319,"session_id":"s1","timestamp":3860,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":194,"ts_ms":3880},"sequence_number":320,"session_id":"s1","timestamp":3880,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":195,"ts_ms":3900},"sequence_number":321,"session_id":"s1","timestamp":3900,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":2460,"ranges":[[2,118,122]]},"sequence_number":322,"session_id":"s1","timestamp":3900,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":196,"ts_ms":3920},"sequence_number":323,"session_id":"s1","timestamp":3920,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":197,"ts_ms":3940},"sequence_number":324,"session_id":"s1","timestamp":3940,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":198,"ts_ms":3960},"sequence_number":325,"session_id":"s1","timestamp":3960,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":199,"ts_ms":3980},"sequence_number":326,"session_id":"s1","timestamp":3980,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":200,"ts_ms":4000},"sequence_number":327,"session_id":"s1","timestamp":4000,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":2560,"ranges":[[2,123,127]]},"sequence_number":328,"session_id":"s1","timestamp":4000,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":201,"ts_ms":4020},"sequence_number":329,"session_id":"s1","timestamp":4020,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":202,"ts_ms":4040},"sequence_number":330,"session_id":"s1","timestamp":4040,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":203,"ts_ms":4060},"sequence_number":331,"session_id":"s1","timestamp":4060,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":204,"ts_ms":4080},"sequence_number":332,"session_id":"s1","timestamp":4080,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":205,"ts_ms":4100},"sequence_number":333,"session_id":"s1","timestamp":4100,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":2660,"ranges":[[2,128,132]]},"sequence_number":334,"session_id":"s1","timestamp":4100,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":206,"ts_ms":4120},"sequence_number":335,"session_id":"s1","timestamp":4120,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":207,"ts_ms":4140},"sequence_number":336,"session_id":"s1","timestamp":4140,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":208,"ts_ms":4160},"sequence_number":337,"session_id":"s1","timestamp":4160,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":209,"ts_ms":4180},"sequence_number":338,"session_id":"s1","timestamp":4180,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":210,"ts_ms":4200},"sequence_number":339,"session_id":"s1","timestamp":4200,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":2760,"ranges":[[2,133,137]]},"sequence_number":340,"session_id":"s1","timestamp":4200,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":211,"ts_ms":4220},"sequence_number":341,"session_id":"s1","timestamp":4220,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":212,"ts_ms":4240},"sequence_number":342,"session_id":"s1","timestamp":4240,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":213,"ts_ms":4260},"sequence_number":343,"session_id":"s1","timestamp":4260,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":214,"ts_ms":4280},"sequence_number":344,"session_id":"s1","timestamp":4280,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":215,"ts_ms":4300},"sequence_number":345,"session_id":"s1","timestamp":4300,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":2860,"ranges":[[2,138,142]]},"sequence_number":346,"session_id":"s1","timestamp":4300,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":216,"ts_ms":4320},"sequence_number":347,"session_id":"s1","timestamp":4320,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":217,"ts_ms":4340},"sequence_number":348,"session_id":"s1","timestamp":4340,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":218,"ts_ms":4360},"sequence_number":349,"session_id":"s1","timestamp":4360,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":219,"ts_ms":4380},"sequence_number":350,"session_id":"s1","timestamp":4380,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":220,"ts_ms":4400},"sequence_number":351,"session_id":"s1","timestamp":4400,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":2960,"ranges":[[2,143,147]]},"sequence_number":352,"session_id":"s1","timestamp":4400,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":221,"ts_ms":4420},"sequence_number":353,"session_id":"s1","timestamp":4420,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":222,"ts_ms":4440},"sequence_number":354,"session_id":"s1","timestamp":4440,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":223,"ts_ms":4460},"sequence_number":355,"session_id":"s1","timestamp":4460,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":224,"ts_ms":4480},"sequence_number":356,"session_id":"s1","timestamp":4480,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":225,"ts_ms":4500},"sequence_number":357,"session_id":"s1","timestamp":4500,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":3060,"ranges":[[2,148,152]]},"sequence_number":358,"session_id":"s1","timestamp":4500,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":226,"ts_ms":4520},"sequence_number":359,"session_id":"s1","timestamp":4520,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":227,"ts_ms":4540},"sequence_number":360,"session_id":"s1","timestamp":4540,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":228,"ts_ms":4560},"sequence_number":361,"session_id":"s1","timestamp":4560,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":229,"ts_ms":4580},"sequence_number":362,"session_id":"s1","timestamp":4580,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":230,"ts_ms":4600},"sequence_number":363,"session_id":"s1","timestamp":4600,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":3160,"ranges":[[2,153,157]]},"sequence_number":364,"session_id":"s1","timestamp":4600,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":231,"ts_ms":4620},"sequence_number":365,"session_id":"s1","timestamp":4620,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":232,"ts_ms":4640},"sequence_number":366,"session_id":"s1","timestamp":4640,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":233,"ts_ms":4660},"sequence_number":367,"session_id":"s1","timestamp":4660,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":234,"ts_ms":4680},"sequence_number":368,"session_id":"s1","timestamp":4680,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":235,"ts_ms":4700},"sequence_number":369,"session_id":"s1","timestamp":4700,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":3260,"ranges":[[2,158,162]]},"sequence_number":370,"session_id":"s1","timestamp":4700,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":236,"ts_ms":4720},"sequence_number":371,"session_id":"s1","timestamp":4720,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":237,"ts_ms":4740},"sequence_number":372,"session_id":"s1","timestamp":4740,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":238,"ts_ms":4760},"sequence_number":373,"session_id":"s1","timestamp":4760,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":239,"ts_ms":4780},"sequence_number":374,"session_id":"s1","timestamp":4780,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":240,"ts_ms":4800},"sequence_number":375,"session_id":"s1","timestamp":4800,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":3360,"ranges":[[2,163,167]]},"sequence_number":376,"session_id":"s1","timestamp":4800,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":241,"ts_ms":4820},"sequence_number":377,"session_id":"s1","timestamp":4820,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":242,"ts_ms":4840},"sequence_number":378,"session_id":"s1","timestamp":4840,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":243,"ts_ms":4860},"sequence_number":379,"session_id":"s1","timestamp":4860,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":244,"ts_ms":4880},"sequence_number":380,"session_id":"s1","timestamp":4880,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":245,"ts_ms":4900},"sequence_number":381,"session_id":"s1","timestamp":4900,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":3460,"ranges":[[2,168,172]]},"sequence_number":382,"session_id":"s1","timestamp":4900,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":246,"ts_ms":4920},"sequence_number":383,"session_id":"s1","timestamp":4920,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":247,"ts_ms":4940},"sequence_number":384,"session_id":"s1","timestamp":4940,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":248,"ts_ms":4960},"sequence_number":385,"session_id":"s1","timestamp":4960,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":249,"ts_ms":4980},"sequence_number":386,"session_id":"s1","timestamp":4980,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":250,"ts_ms":5000},"sequence_number":387,"session_id":"s1","timestamp":5000,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":3560,"ranges":[[2,173,177]]},"sequence_number":388,"session_id":"s1","timestamp":5000,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":251,"ts_ms":5020},"sequence_number":389,"session_id":"s1","timestamp":5020,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":252,"ts_ms":5040},"sequence_number":390,"session_id":"s1","timestamp":5040,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":253,"ts_ms":5060},"sequence_number":391,"session_id":"s1","timestamp":5060,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":254,"ts_ms":5080},"sequence_number":392,"session_id":"s1","timestamp":5080,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":255,"ts_ms":5100},"sequence_number":393,"session_id":"s1","timestamp":5100,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":3660,"ranges":[[2,178,182]]},"sequence_number":394,"session_id":"s1","timestamp":5100,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":256,"ts_ms":5120},"sequence_number":395,"session_id":"s1","timestamp":5120,"turn_id":1}
+{"event_type":"playback_progress","generation_id":2,"payload":{"played_ms":3680,"ranges":[[2,183,183]]},"sequence_number":396,"session_id":"s1","timestamp":5120,"turn_id":1}
+{"event_type":"playback_stopped","generation_id":2,"payload":{"playback_truth":{"chunks":[{"chunk_id":0,"enqueued":true,"played_samples":3840,"samples":3840,"state":"played","text_range":[0,11],"truncated":false},{"chunk_id":1,"enqueued":true,"played_samples":3200,"samples":3200,"state":"played","text_range":[11,21],"truncated":false},{"chunk_id":2,"enqueued":true,"played_samples":3200,"samples":3200,"state":"played","text_range":[21,32],"truncated":false},{"chunk_id":3,"enqueued":true,"played_samples":4160,"samples":4160,"state":"played","text_range":[32,46],"truncated":false},{"chunk_id":4,"enqueued":true,"played_samples":3200,"samples":3200,"state":"played","text_range":[46,56],"truncated":false},{"chunk_id":5,"enqueued":true,"played_samples":3520,"samples":3520,"state":"played","text_range":[56,69],"truncated":false},{"chunk_id":6,"enqueued":true,"played_samples":4160,"samples":4160,"state":"played","text_range":[69,81],"truncated":false},{"chunk_id":7,"enqueued":true,"played_samples":3200,"samples":3200,"state":"played","text_range":[81,94],"truncated":false},{"chunk_id":8,"enqueued":true,"played_samples":3840,"samples":3840,"state":"played","text_range":[94,105],"truncated":false},{"chunk_id":9,"enqueued":true,"played_samples":4160,"samples":4160,"state":"played","text_range":[105,118],"truncated":false},{"chunk_id":10,"enqueued":true,"played_samples":4480,"samples":4480,"state":"played","text_range":[118,134],"truncated":false},{"chunk_id":11,"enqueued":true,"played_samples":3520,"samples":3520,"state":"played","text_range":[134,146],"truncated":false},{"chunk_id":12,"enqueued":true,"played_samples":4160,"samples":4160,"state":"played","text_range":[146,160],"truncated":false},{"chunk_id":13,"enqueued":true,"played_samples":3520,"samples":3520,"state":"played","text_range":[160,175],"truncated":false},{"chunk_id":14,"enqueued":true,"played_samples":3840,"samples":3840,"state":"played","text_range":[175,189],"truncated":false},{"chunk_id":15,"enqueued":true,"played_samples":2880,"samples":2880,"state":"played","text_range":[189,199],"truncated":false}],"enqueued_text":"Sure, I can help with that. Your table for two is booked for Thursday at seven in the evening, and I have added a note about the quiet window seat you asked for earlier today, so everything is ready.","full_text":"Sure, I can help with that. Your table for two is booked for Thursday at seven in the evening, and I have added a note about the quiet window seat you asked for earlier today, so everything is ready. ","heard_range":[0,199],"heard_text":"Sure, I can help with that. Your table for two is booked for Thursday at seven in the evening, and I have added a note about the quiet window seat you asked for earlier today, so everything is ready.","played_ms":3680},"reason":"completed"},"sequence_number":397,"session_id":"s1","timestamp":5120,"turn_id":1}
+{"event_type":"context_committed","generation_id":2,"payload":{"outcome":"completed","role":"user","text":"Book a table for two please."},"sequence_number":398,"session_id":"s1","timestamp":5120,"turn_id":1}
+{"event_type":"context_committed","generation_id":2,"payload":{"interrupted":false,"role":"assistant","text":"Sure, I can help with that. Your table for two is booked for Thursday at seven in the evening, and I have added a note about the quiet window seat you asked for earlier today, so everything is ready."},"sequence_number":399,"session_id":"s1","timestamp":5120,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":257,"ts_ms":5140},"sequence_number":400,"session_id":"s1","timestamp":5140,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":258,"ts_ms":5160},"sequence_number":401,"session_id":"s1","timestamp":5160,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":259,"ts_ms":5180},"sequence_number":402,"session_id":"s1","timestamp":5180,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":260,"ts_ms":5200},"sequence_number":403,"session_id":"s1","timestamp":5200,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":261,"ts_ms":5220},"sequence_number":404,"session_id":"s1","timestamp":5220,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":262,"ts_ms":5240},"sequence_number":405,"session_id":"s1","timestamp":5240,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":263,"ts_ms":5260},"sequence_number":406,"session_id":"s1","timestamp":5260,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":264,"ts_ms":5280},"sequence_number":407,"session_id":"s1","timestamp":5280,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":265,"ts_ms":5300},"sequence_number":408,"session_id":"s1","timestamp":5300,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":266,"ts_ms":5320},"sequence_number":409,"session_id":"s1","timestamp":5320,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":267,"ts_ms":5340},"sequence_number":410,"session_id":"s1","timestamp":5340,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":268,"ts_ms":5360},"sequence_number":411,"session_id":"s1","timestamp":5360,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":269,"ts_ms":5380},"sequence_number":412,"session_id":"s1","timestamp":5380,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":270,"ts_ms":5400},"sequence_number":413,"session_id":"s1","timestamp":5400,"turn_id":1}
+{"event_type":"audio_frame","generation_id":null,"payload":{"seq":271,"ts_ms":5420},"sequence_number":414,"session_id":"s1","timestamp":5420,"turn_id":1}
+{"event_type":"session_closed","generation_id":null,"payload":{"overdue_task_count":0,"queue_max_depth":{"asr_in":1,"playback":75,"text":3},"reason":"explicit_close","residual":{"asr_in":1,"playback":0,"text":0}},"sequence_number":415,"session_id":"s1","timestamp":5420,"turn_id":1}

@@ -28,11 +28,7 @@ python3.12 -m venv .venv
 .venv/bin/pytest
 ```
 
-把警告当错误再跑一遍（检查未关闭的资源等）：
-
-```bash
-.venv/bin/pytest -W error
-```
+`pyproject.toml` 已配置 `filterwarnings = ["error"]`：任何警告（如未关闭的资源）都会让测试失败。
 
 依次跑 A'、A、B、C、D、E 六个场景，生成 trace 和指标汇总：
 
