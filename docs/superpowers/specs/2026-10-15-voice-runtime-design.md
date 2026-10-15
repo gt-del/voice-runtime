@@ -41,7 +41,10 @@
 
 - Python 3.12 + asyncio。【用户决定】结构化并发使用 `asyncio.TaskGroup`，层级见 §10.4。用 uv 管理依赖，pytest 跑测试。【我的决定】真实模型的依赖放在 optional extras 中。
 - 音频格式：单声道 / PCM16 / 16kHz / 20ms 一帧（320 samples），每帧带单调递增的 `seq` 和时间戳。
-- **所有时间都经由可注入的 `Clock`**（`now()` / `sleep()`）。测试使用虚拟时钟，演示时可以用真实时钟。【我的决定】理由：700ms 停顿、250ms 停播这类时序断言只有在虚拟时钟下才能做到每次结果一致，而且测试不用真的等待。
+- **只用虚拟时钟**【用户同意】：P0、P1 阶段，包括全部测试和 sample-output 的生成，都只用虚拟时钟。理由是 700ms 停顿、250ms 停播这类断言，只有在虚拟时钟下才能每次结果一致，测试不用真的等待，sample-output 也能逐字节复现。
+  - **实现方式定死在 event loop 这一层**：自定义 event loop，重写 `time()`；没有就绪的回调时，直接跳到下一个定时器的时刻。这样 `asyncio.sleep`、`asyncio.timeout`、`wait_for` 全都自动走虚拟时间，不会有代码绕过时钟、偷偷用上真实时间。所有时间戳统一取 `loop.time()`（换算成毫秒）。
+  - **核心代码禁止使用线程和真实 I/O 等待**（`to_thread`、executor、socket 等）。原因有两个：线程等待期间，虚拟时间会直接跳走；线程也没法被取消。事件日志是同步写文件，不受影响。
+  - 真实时钟留到 P2 接入真实模型时再加，现在不做。
 - 每个假 Provider 使用**各自独立的 `random.Random(seed)`**，避免调用顺序变化导致抖动值变化。
 - 遵守 [CLAUDE.md](../../../CLAUDE.md)：不做没要求的功能，不做只用一次的抽象。
 
@@ -98,23 +101,30 @@
 - **silence_epoch 和 text_version**：每次 `speech_start`，epoch 加 1；累计文本每变化一次，text_version 加 1。所有打分请求都带上这两个值，结果返回时只要其中一个变了，就记 `stale_event_dropped(gate=endpoint)`。比如 final 到达改变了文本，正在进行的 L2/L3 结果就会作废。
 - **L1 打分时机**：在 `speech_end` 那一刻，先用当前文本（通常是 partial）打一次分。之后只要文本变化（新的 partial 或 final）就重新打分，文本不变就不重复打分。L1 的分数有两个用途：
   1. 决定是否预生成（§7）：在静音期间，只要 p ≥ `speculate_threshold`（0.6）就可以启动。
-  2. 判停：只有静音达到 `initial_silence_ms`（200ms）之后，才拿最近一次分数做判定。
-- **每一级的判定**：
-  - `p ≥ high`（0.85）且 `confidence ≥ min_conf`（0.5）→ 判定 endpoint
-  - `p ≤ low`（0.3）且 `confidence ≥ min_conf` → 判为"没说完"，继续等待（等文本变化后重新打分、等用户再开口，或者等硬上限）
-  - 其余情况（落在中间，或置信度不够，或超出本级预算）→ 升级到下一级
-  - L3 是最后一级：`p ≥ 0.5` 就判定（`reason=l3_majority`），否则继续等待；L3 超时也继续等待
+  2. 判停：见下面的"动态阈值"。
+- **提前升级**【用户同意】：某一级给出的结果是"拿不准"（`low < p < 0.85`，或者 `confidence < min_conf`，或者超出了本级预算），就**立即**并行发起下一级，不用等静音满 `initial_silence_ms`。结果先存起来，到可以判定的时候再用。L2 的 150ms 基本被静音期吸收掉。
+  - 在同一个 (epoch, text_version) 下，每一级同时**最多只有一个请求在途**。
+  - 某一级的结果是"很确定没说完"（`p ≤ low` 且 `confidence ≥ min_conf`），就不再往上升级。
+  - L3 是最后一级，不再升级。
+- **当前分数**：在当前 (epoch, text_version) 下，**已经返回的最高一级**的结果。
+- **动态阈值判停**【用户同意】：静音时长为 t 时，判停门槛 `high(t)` 的取值为：
+  - t < `initial_silence_ms`（200ms）：不判停
+  - 200ms 时为 0.85，之后线性下降，到 `threshold_floor_at_ms`（1000ms）时降到 `high_floor`（0.5），此后保持不变
+  - t ≥ `max_silence_ms`（1500ms）：无条件判停（`reason=max_silence`），这只是兜底，不是主信号
+
+  每个 20ms tick 都用"当前分数"和 `high(t)` 比较一次（只是比较，不重新打分）。`p ≥ high(t)` 且 `confidence ≥ min_conf` 就判停（`reason=score_threshold`）。
+- **为什么这样设计**：
+  - "很确定没说完"（p ≤ 0.3）永远达不到 0.5 的下限，所以一定会等到用户再开口或者硬上限。场景 B 中，700ms 时门槛约为 0.63，"for" 结尾的低分（约 0.1）离它还很远。
+  - 拿不准的中间分会随着静音变长逐渐被接受。比如 p = 0.6 时，大约在 770ms 判停，不必等满 1500ms。P0 阶段还没有 L2/L3 时，也按这个规则走。
 - **每级预算**：L1 50ms、L2 150ms、L3 500ms。
-- **硬上限**：静音达到 `max_silence_ms`（1500ms）就强制判定（`reason=max_silence`）。这只是兜底，不是主信号。
 - **判停文本**：如果判停时最后一个语音段的 final 还没到，最多再等 `final_wait_ms`。等到了就用 final；超时就用最新的 partial，并记 `text_source=partial`。
-- **`endpoint_committed` 的写入时刻**：判停文本确定之后才写。payload 中带 `decided_at`（做出判定的时刻）、`text_source`、`reason`、`level`。
-- **P0 阶段**（还没有 L2/L3，见 §14）：L1 给出中间分时，直接等到硬上限。
+- **`endpoint_committed` 的写入时刻**：判停文本确定之后才写。payload 中带 `decided_at`、`text_source`、`reason`、`level`、`p`，以及判停时刻的 `threshold`（即 `high(t)` 的值）。只看日志就能知道"为什么在这一刻判停"。
 
 **L1 规则冲突的优先级**：句末是介词、连词等"没说完"信号的规则，优先于句末标点规则。例如 "Please book it for." 仍然判为"没说完"。
 
 **场景 B 的成立方式**：L1 规则识别出 "Please book it for" 以介词结尾，给出低分，所以在 700ms 停顿期间不会判停，也不会预生成。后半句说完后，文本以时间词结尾并带有句末标点，L1 给出高分，静音约 200ms 时就判停。整个过程没有用到很大的固定阈值。
 
-**"响应快"和"不抢话"之间的取舍**：`initial_silence_ms` 决定了说完后最快多久能判停；`low` 和中间区间决定了拿不准时愿意多等多久。规则打分器宁可给出"拿不准"，交给更高一级去判断，也不轻易判成"说完了"，这是偏向"不抢话"的取舍。预生成在一定程度上弥补了因此多等的时间。
+**"响应快"和"不抢话"之间的取舍**：`initial_silence_ms` 决定了说完后最快多久能判停；`high(t)` 的下降曲线决定了拿不准时愿意多等多久。规则打分器宁可给出"拿不准"，交给更高一级去判断，也不轻易判成"说完了"，这是偏向"不抢话"的取舍。预生成在一定程度上弥补了因此多等的时间。
 
 ### 6.3 L1 默认实现：确定性规则打分器【用户决定：方案二】
 L1 的分数来自文本本身的语言信号，不按脚本查表。规则方向如下（具体词表和权重由实现者决定，并写进 DESIGN.md）：
@@ -358,7 +368,7 @@ JSONL 格式，每条包含：`timestamp`（时钟毫秒）、`session_id`、`tu
 | 各队列最大长度 | `session_closed.payload.queue_max_depth` |
 
 ## 12. 测试策略
-- **虚拟时钟**：实现方式由实现者决定，但必须保证**同一个脚本每次运行，生成的 JSONL 逐字节一致**，并有一个测试断言这一点。
+- **虚拟时钟**：采用 §3 规定的 event loop 级实现。必须保证**同一个脚本每次运行，生成的 JSONL 逐字节一致**，并有一个测试断言这一点。
 - **脚本化音频源**：用"用户语音段（文本 + 逐词时间）/ 静音 / 噪声 / 断开"这样的时间轴描述场景，并写 `script_marker`。脚本跑完后**持续发送静音**，直到测试显式调用 `close()`，所以回复能完整播完。客户端断开要作为一个显式的脚本段来写。
 - **测试的外层超时**：每个测试都包一层真实时间的超时，Provider 卡住时测试会失败，而不是一直挂住。
 - **场景测试**（断言里的界值都由当前配置推算出来，并在测试中写明推算方法）：
@@ -402,7 +412,7 @@ JSONL 格式，每条包含：`timestamp`（时钟毫秒）、`session_id`、`tu
 2. invalidate 所有 generation。
 3. 播放器门控切到 `closed`。此后任何写入都记 `gate=session_closed`。
 4. 显式取消 session 级的循环任务：`audio_pump`、`asr_consumer`、cascade/gate 驱动、`player_ticker`。
-5. 等待 session 的 TaskGroup 退出。超过 `close_grace_ms` 还有任务没退出时，**不放弃，继续等待**；同时写 `close_timeout` 告警，列出未退出的任务名，并计入 `overdue_task_count`。【用户决定】
+5. 等待 session 的 TaskGroup 退出。超过 `close_grace_ms` 还有任务没退出时，**不放弃，继续等待**；同时写 `close_timeout` 告警，列出未退出的任务名，并计入 `overdue_task_count`。【用户决定】之后**每隔一个 `close_grace_ms`，就对仍未退出的任务再 `cancel()` 一次**，每次都写一条 `close_timeout`（带 `round` 轮次），专门对付吞掉了第一次取消的任务。【用户同意】
 6. 丢弃各队列的残留，按队列分别记录数量。
 7. 写 `session_closed`。
 
@@ -415,9 +425,17 @@ JSONL 格式，每条包含：`timestamp`（时钟毫秒）、`session_id`、`tu
 
 第 5 步会一直等到所有任务退出，所以写 `session_closed` 时仍在运行的任务数必然为 0。
 
+**防止卡死的约束**【用户同意】：
+- **不允许吞掉 `CancelledError`**：任何任务都不能吞掉它。确实需要做清理时，用 `try/finally`，或者捕获后重新抛出。
+- **核心代码不用线程**：见 §3。
+- **外部取消也要完整关闭**：调用方直接取消 `Session.run()` 时，关闭序列在 `finally` 中执行，并用 `asyncio.shield` 保护，保证不会半途中断。如果当时还没写 `session_closed`，reason 记为 `explicit_close`。
+- **测试**：
+  - 一个"吞掉第一次取消"的假 Provider，验证"再取消一次"的路径生效：`close_timeout` 至少有 1 轮，最终 `session_closed` 写出，且仍在运行的任务数为 0。
+  - 外部取消 `run()` 后，`session_closed` 仍然写出。
+
 ## 14. 实施优先级与交付物
 **优先级**【我的决定，回应 CLAUDE.md 的"别做多余的"】：
-- **P0**：时钟、事件日志、BoundedQueue、假 Provider、Session 和 generation 的取消机制、播放器和 Playback Truth、判停（L1 规则打分 + 硬上限）、打断门禁、场景 A' / B / C / D / E、指标计算
+- **P0**：虚拟 event loop、事件日志、BoundedQueue、假 Provider、Session 和 generation 的取消机制、播放器和 Playback Truth、判停（L1 规则打分 + 动态阈值 + 硬上限）、打断门禁、场景 A' / B / C / D / E、指标计算
 - **P1**：投机预生成和场景 A、L2 / L3 升级、开头底噪裁剪、§12 中的其他测试
 - **P2**：真实模型适配器
 - **最后**：交付物
@@ -427,7 +445,7 @@ P1 和 P2 都不能反过来要求 P0 的接口做额外泛化。
 **交付物**：README.md、DESIGN.md（2～4 页，由本文压缩而成，回答需求文档 §6.3 的全部问题以及 B～E 的补充说明）、src/、tests/、sample-output/（一次 barge-in 的 trace.jsonl、各场景指标汇总、简短分析）、agent-chat.md（移除 PII）。
 
 ## 15. 留给实现者决定的事项
-- 虚拟时钟的具体实现方式（满足 §12 的逐字节一致即可）。
+- 虚拟 event loop 的实现细节（方案已在 §3 定死，满足 §12 的逐字节一致即可）。
 - 模块和文件的划分、类的命名。
 - 默认参数的具体数值（§16）：可以调整，但要保证场景断言、`noise_timeout_ms` 不等式和 E 的时序不等式都成立，并在 DESIGN.md 中写明最终取值。
 - RuleTurnScorer 的词表和权重；开头静音的裁剪方法。
@@ -442,7 +460,8 @@ P1 和 P2 都不能反过来要求 P0 的接口做额外泛化。
 | `final_wait_ms` | 300 | |
 | `max_silence_ms` | 1500 | 必须 > 场景 B 的 700ms 停顿 |
 | L1 / L2 / L3 预算 | 50 / 150 / 500 ms | |
-| `high` / `low` / `min_conf` | 0.85 / 0.3 / 0.5 | |
+| `high`（200ms 起点）/ `low` / `min_conf` | 0.85 / 0.3 / 0.5 | |
+| `high_floor` / `threshold_floor_at_ms` | 0.5 / 1000 | `high_floor` 必须 > `low`，这样"很确定没说完"永远不会被阈值放行 |
 | `speculate_threshold` | 0.6 | |
 | 假 ASR `partial_latency_ms` / `final_latency_ms` | 100 / 150 | |
 | 各假 Provider 最大抖动 | 20 ms | 每个 Provider 用独立的 `Random(seed)` |
