@@ -39,7 +39,7 @@
 
 ## 3. 约束
 
-- Python 3.12 + asyncio。【用户决定】结构化并发使用 `asyncio.TaskGroup`，层级见 §10.4。用 uv 管理依赖，pytest 跑测试。【我的决定】真实模型的依赖放在 optional extras 中。
+- Python 3.12 + asyncio。【用户决定】结构化并发使用 `asyncio.TaskGroup`，层级见 §10.4。依赖用 `python3 -m venv` + pip + `pyproject.toml` 管理【用户决定】，pytest 跑测试。真实模型的依赖放在 optional extras 中。
 - 音频格式：单声道 / PCM16 / 16kHz / 20ms 一帧（320 samples），每帧带单调递增的 `seq` 和时间戳。
 - **只用虚拟时钟**【用户同意】：P0、P1 阶段，包括全部测试和 sample-output 的生成，都只用虚拟时钟。理由是 700ms 停顿、250ms 停播这类断言，只有在虚拟时钟下才能每次结果一致，测试不用真的等待，sample-output 也能逐字节复现。
   - **实现方式定死在 event loop 这一层**：自定义 event loop，重写 `time()`；没有就绪的回调时，直接跳到下一个定时器的时刻。这样 `asyncio.sleep`、`asyncio.timeout`、`wait_for` 全都自动走虚拟时间，不会有代码绕过时钟、偷偷用上真实时间。所有时间戳统一取 `loop.time()`（换算成毫秒）。
