@@ -22,6 +22,7 @@ class SpeechTracker:
         self.epoch = 0
         self.speech_frames_run = 0
         self.last_speech_end_ms: int | None = None
+        self.speech_start_ms: int | None = None  # 当前（或最近一段）语音的 start 边沿时间戳
         self._run_start_ms = 0
         self._silence_run = 0
         self._silence_start_ms = 0
@@ -35,6 +36,7 @@ class SpeechTracker:
             if not self.in_speech and self.speech_frames_run >= self._cfg.vad_start_frames:
                 self.in_speech = True
                 self.epoch += 1
+                self.speech_start_ms = self._run_start_ms
                 return SpeechEdge("start", self._run_start_ms, self.epoch)
             return None
         self.speech_frames_run = 0

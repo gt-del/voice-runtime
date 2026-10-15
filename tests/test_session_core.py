@@ -1,9 +1,14 @@
-from helpers import run_scenario
+import asyncio
 
+from helpers import build_session, run_scenario
+
+from voice_runtime.config import RuntimeConfig
+from voice_runtime.events import EventLog
 from voice_runtime.providers.fake import StreamFaults
 from voice_runtime.scenarios import Scenario
 from voice_runtime.script import AfterEvent, Silence, Speech
 from voice_runtime.session import CloseReason, SessionState
+from voice_runtime.vloop import run
 
 LLM = StreamFaults(300, 50)
 TTS = StreamFaults(200, 40)
@@ -82,6 +87,8 @@ def test_asr_stall_overflows_asr_in_without_deadlock(tmp_path):
     assert len(overflows) >= 1
     assert overflows[-1]["payload"]["depth"] == 50
     assert r.session.queues["asr_in"].max_depth == 50
+    assert all(o["payload"]["dropped"] == 1 for o in overflows)  # 本次 put 丢掉的帧数
+    assert [o["payload"]["dropped_total"] for o in overflows] == list(range(1, len(overflows) + 1))
     assert r.reason is CloseReason.EXPLICIT_CLOSE
     assert len(of(r.events, "session_closed")) == 1
 
@@ -117,6 +124,7 @@ def test_context_is_bounded(tmp_path):
     assert len(of(r.events, "endpoint_committed")) == 25
     assert len(r.session.context) == 20
     assert r.session.context[-1] == {"role": "assistant", "content": "Sure."}
+    assert len(r.session._gens) <= 2 and len(r.session._sups) <= 2  # 结束的 generation 被清理
 
 
 def test_turn_id_and_generation_id_come_from_data(tmp_path):
@@ -137,3 +145,55 @@ def test_turn_id_and_generation_id_come_from_data(tmp_path):
     assert text == {1: "Sure thing. ", 2: "You are welcome. "}
     assert [c["payload"]["text"] for c in of(ev, "context_committed")] == \
         ["Book a table.", "Sure thing.", "Thanks a lot.", "You are welcome."]
+
+
+def test_utterance_spanning_turn_end_gets_its_own_turn(tmp_path):
+    """播放期间开口、轮次结束后才说完的话：成为下一轮的输入，不泄漏进再下一轮。"""
+    ten = "one two three four five six seven eight nine ten."
+    segs = [Speech("Book a table."), AfterEvent("playback_started", 100), Speech(ten),
+            Silence(3000), Speech("Thanks a lot.")]
+    r = run_scenario(scenario("spanning", segs, reply="Sure thing, done.",
+                              close_after=("context_committed", 6, 100)), tmp_path)
+    ev = r.events
+    commits = of(ev, "endpoint_committed")
+    assert [(c["turn_id"], c["payload"]["text"]) for c in commits] == \
+        [(1, "Book a table."), (2, ten), (3, "Thanks a lot.")]
+    # 10 词那段话的判停不靠 max_silence 兜底
+    assert all(c["payload"]["reason"] == "score_threshold" for c in commits)
+    turn1_end = of(ev, "context_committed", role="user")[0]["timestamp"]
+    ten_start = of(ev, "script_marker", segment="speech", phase="start", index=2)[0]["timestamp"]
+    assert ten_start < turn1_end  # 确实跨越了轮次结束
+
+
+def test_invalidate_is_idempotent(tmp_path):
+    sc = scenario("invalidate", [Speech("Book a table for two please.")])
+    log = EventLog(tmp_path / "inv.jsonl", "s1")
+    events: list[dict] = []
+    log.add_listener(events.append)
+    session, _ = build_session(sc, RuntimeConfig(), log)
+
+    async def main():
+        task = asyncio.create_task(session.run(), name="test/session")
+        while session.active_generation_id is None:
+            await asyncio.sleep(0.02)
+        gid = session.active_generation_id
+        gen, sup = session._gens[gid], session._sups[gid]
+        calls = []
+        orig = sup.signal_cancel
+        sup.signal_cancel = lambda: (calls.append(1), orig())
+        session._player.stop_generation(gid, "test")
+        session.invalidate(gen, "test")
+        session.invalidate(gen, "test")
+        assert len(calls) == 1
+        session.close()
+        session.close()
+        return await task
+
+    try:
+        assert run(main()) is CloseReason.EXPLICIT_CLOSE
+    finally:
+        log.close()
+    cancelled = of(events, "generation_cancelled")
+    assert [c["payload"]["duplicate"] for c in cancelled] == [False, True]
+    assert len(of(events, "stale_event_dropped", gate="purge")) == 1
+    assert len(of(events, "session_closed")) == 1

@@ -58,6 +58,7 @@ class EndpointCascade:
         if edge.kind == "start":
             self._silence_start_ms = None
             self._decided = False
+            self.have_final_for_last_segment = False  # 新语音段已开口，上一段的 final 不算数
         else:
             self._silence_start_ms = edge.ts_ms
             self._score_l1()

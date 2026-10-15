@@ -25,6 +25,20 @@ class ScenarioResult:
     state_at_close: SessionState  # 触发 close 那一刻的状态（run 结束后 state 必为 CLOSED）
 
 
+def build_session(sc: Scenario, cfg: RuntimeConfig, log: EventLog) -> tuple[Session, FakeSink]:
+    source = ScriptedAudioSource(sc.segments, log)
+    providers = Providers(
+        vad=FakeVAD(),
+        asr=FakeASR(sc.segments, **sc.asr_kwargs),
+        llm=FakeLLM(sc.llm_replies, sc.default_reply, sc.llm_faults),
+        tts=FakeTTS(sc.tts_faults, leading_noise_ms=sc.tts_leading_noise_ms),
+        l1=RuleTurnScorer(),
+        backchannel=FakeBackchannelScorer(),
+    )
+    sink = FakeSink()
+    return Session(cfg, providers, source, sink, log), sink
+
+
 def run_scenario(sc: Scenario, tmp_path: Path, *, max_virtual_ms: int = 60000,
                  **cfg_overrides) -> ScenarioResult:
     cfg = RuntimeConfig(**{**sc.cfg_overrides, **cfg_overrides})
@@ -32,17 +46,7 @@ def run_scenario(sc: Scenario, tmp_path: Path, *, max_virtual_ms: int = 60000,
     events: list[dict] = []
     log.add_listener(events.append)
     try:
-        source = ScriptedAudioSource(sc.segments, log)
-        providers = Providers(
-            vad=FakeVAD(),
-            asr=FakeASR(sc.segments, **sc.asr_kwargs),
-            llm=FakeLLM(sc.llm_replies, sc.default_reply, sc.llm_faults),
-            tts=FakeTTS(sc.tts_faults, leading_noise_ms=sc.tts_leading_noise_ms),
-            l1=RuleTurnScorer(),
-            backchannel=FakeBackchannelScorer(),
-        )
-        sink = FakeSink()
-        session = Session(cfg, providers, source, sink, log)
+        session, sink = build_session(sc, cfg, log)
         forced = False
         state_at_close: SessionState | None = None
 

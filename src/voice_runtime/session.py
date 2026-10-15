@@ -71,17 +71,19 @@ class Session:
         self._pending_decision: EndpointDecision | None = None  # 已判停、等 final 中
         self._gens: dict[int, Generation] = {}
         self._sups: dict[int, GenerationSupervisor] = {}
+        self._running_sups: set[int] = set()  # supervisor 任务尚未退出的 generation
         self._tracker = SpeechTracker(cfg)
         self._cascade = EndpointCascade(cfg, log, [providers.l1], spawn=self._spawn)
         self._player = Player(cfg, log, self.queues["playback"], sink,
                               is_active=lambda gid: gid == self.active_generation_id,
-                              ledgers=lambda gid: self._gens[gid].ledger,
-                              turn_of=lambda gid: self._gens[gid].turn_id)
+                              ledgers=self._ledger_of,
+                              turn_of=self._turn_of)
         self._player.on_generation_done = self._on_generation_done
         self._tg: asyncio.TaskGroup | None = None
         self._tasks: set[asyncio.Task] = set()
         self._stop_event = asyncio.Event()
         self._close_reason: CloseReason | None = None
+        self._shut_down = False
         log.add_listener(self._on_log_event)
 
     # ---- 公共接口 ----
@@ -147,6 +149,9 @@ class Session:
 
     def _shutdown(self) -> None:
         """最简关闭（Task 14 替换为完整的关闭序列）：作废在播 generation、关播放器、取消所有任务。"""
+        if self._shut_down:
+            return
+        self._shut_down = True
         self.state = SessionState.CLOSING
         gid = self.active_generation_id
         if gid is not None:
@@ -167,11 +172,12 @@ class Session:
             edge = self._tracker.feed(frame, self._p.vad.process(frame))
             if edge is not None:
                 self._on_speech_edge(edge)
-            dropped = asr_in.dropped_count
+            before = asr_in.dropped_count
             await asr_in.put(frame)
-            if asr_in.dropped_count > dropped:
+            if asr_in.dropped_count > before:
                 self._log.emit(QUEUE_OVERFLOW, turn_id=self._tid, queue="asr_in",
-                               depth=asr_in.depth, dropped=asr_in.dropped_count)
+                               depth=asr_in.depth, dropped=asr_in.dropped_count - before,
+                               dropped_total=asr_in.dropped_count)
         if self._source.disconnected:
             self.close(CloseReason.CLIENT_DISCONNECT)
 
@@ -188,7 +194,9 @@ class Session:
             self._log.emit(ASR_FINAL if ev.kind == "final" else ASR_PARTIAL, turn_id=self._tid,
                            text=ev.text, segment_id=ev.segment_id,
                            segment_start_ms=ev.segment_start_ms, segment_end_ms=ev.segment_end_ms)
-            self._cascade.on_text(ev.text, ev.kind == "final")
+            # 只有 LISTENING 且轮次已开启时文本才进 cascade；播放期间的语音归打断门禁（Task 13）
+            if self.state is SessionState.LISTENING and self._turn_open:
+                self._cascade.on_text(ev.text, ev.kind == "final")
 
     async def _control(self) -> None:
         while True:
@@ -200,9 +208,7 @@ class Session:
     def _on_speech_edge(self, edge: SpeechEdge) -> None:
         listening = self.state is SessionState.LISTENING
         if edge.kind == "start" and listening and not self._turn_open:
-            self.turn_id += 1
-            self._turn_open = True
-            self._cascade.turn_id = self.turn_id
+            self._open_turn()
         self._log.emit(SPEECH_START if edge.kind == "start" else SPEECH_END, turn_id=self._tid,
                        ts_ms=edge.ts_ms, epoch=edge.epoch)
         # PENDING / PLAYING 中的语音边界由打断门禁处理（Task 13），这里不参与判停
@@ -210,6 +216,11 @@ class Session:
             if edge.kind == "start":
                 self._pending_decision = None  # 等 final 期间用户又开口：判停作废，cascade 重新判
             self._cascade.on_speech_edge(edge)
+
+    def _open_turn(self) -> None:
+        self.turn_id += 1
+        self._turn_open = True
+        self._cascade.turn_id = self.turn_id
 
     def _control_tick(self, now: int) -> None:
         if self.state is not SessionState.LISTENING or not self._turn_open:
@@ -247,10 +258,32 @@ class Session:
                                    is_active=lambda g: g.id == self.active_generation_id,
                                    on_failed=self._on_failed)
         self._sups[gid] = sup
-        self._spawn(sup.run(), f"gen-{gid}/supervisor")
+        self._running_sups.add(gid)
+        task = self._spawn(sup.run(), f"gen-{gid}/supervisor")
+        task.add_done_callback(lambda _: self._on_supervisor_exit(gid))
         self._player.hold(gid)
         self._player.release(gid)
         self.state = SessionState.PENDING
+
+    def _on_supervisor_exit(self, gid: int) -> None:
+        self._running_sups.discard(gid)
+        self._prune(gid)
+
+    def _prune(self, gid: int) -> None:
+        """generation 不再 active、播放器不再持有、supervisor 已退出时，从注册表中移除。"""
+        if (gid == self.active_generation_id or gid == self._player.current_generation
+                or gid in self._running_sups):
+            return
+        self._gens.pop(gid, None)
+        self._sups.pop(gid, None)
+
+    def _turn_of(self, gid: int) -> int | None:
+        gen = self._gens.get(gid)
+        return gen.turn_id if gen is not None else None
+
+    def _ledger_of(self, gid: int) -> TruthLedger:
+        gen = self._gens.get(gid)
+        return gen.ledger if gen is not None else TruthLedger(gid)  # 已清理：给空账本，不抛异常
 
     def _on_log_event(self, e: dict) -> None:
         if (e["event_type"] == PLAYBACK_STARTED and self.state is SessionState.PENDING
@@ -290,3 +323,9 @@ class Session:
         self._pending_decision = None
         self._cascade.reset()
         self.state = SessionState.LISTENING
+        self._prune(gen.id)
+        if self._tracker.in_speech:
+            # 用户正说到一半（播放期间开口）：这段话直接成为下一轮，后续的累计 ASR 文本归入新轮次
+            self._open_turn()
+            self._cascade.on_speech_edge(
+                SpeechEdge("start", self._tracker.speech_start_ms, self._tracker.epoch))

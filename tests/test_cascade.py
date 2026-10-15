@@ -291,3 +291,17 @@ def test_on_l1_scored_exception_is_logged_not_fatal(tmp_path):
     failed = _of(events, TASK_FAILED)
     assert [f["payload"] for f in failed] == [{"task": "session/score-l1", "error": "ValueError: bad"}]
     assert d.reason == "score_threshold" and d.decided_at_ms == END_TS + 200
+
+
+def test_speech_start_clears_have_final_for_last_segment(tmp_path):
+    """新语音段开口后，上一段的 final 不能再满足"等 final"。"""
+    async def main():
+        c, _ = _mk(tmp_path, RuleTurnScorer())
+        c.on_speech_edge(SpeechEdge("start", 0, 1))
+        c.on_text("Please book it for", True)
+        assert c.have_final_for_last_segment
+        c.on_speech_edge(SpeechEdge("start", 1700, 2))
+        assert not c.have_final_for_last_segment
+        c._log.close()
+
+    run(main())
