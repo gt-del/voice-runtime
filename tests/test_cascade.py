@@ -305,3 +305,92 @@ def test_speech_start_clears_have_final_for_last_segment(tmp_path):
         c._log.close()
 
     run(main())
+
+
+def _mk3(tmp_path, *scorers):
+    log = EventLog(tmp_path / "e.jsonl", "s")
+    events: list[dict] = []
+    log.add_listener(events.append)
+    return EndpointCascade(RuntimeConfig(), log, list(scorers), spawn=_spawn), events
+
+
+class _Spy(ScriptedTurnScorer):
+    def __init__(self, *a, **kw):
+        super().__init__(*a, **kw)
+        self.calls: list[tuple[int, bytes | None]] = []
+
+    async def score(self, text, audio=None):
+        self.calls.append((now_ms(), audio))
+        return await super().score(text, audio)
+
+
+def test_uncertain_l1_escalates_immediately_at_speech_end(tmp_path):
+    async def body():
+        l2 = _Spy({}, TurnScore(0.95, 0.9))
+        c, events = _mk3(tmp_path, ScriptedTurnScorer({}, TurnScore(0.6, 0.4)), l2)
+        c.feed_audio(b"\x01" * 640)
+        await _speak_then_end(c, "book it")
+        await _sleep_to(END_TS + 90)
+        return l2, events
+    l2, events = run(body())
+    assert [t for t, _ in l2.calls] == [END_TS + 80]  # 与 speech_end 同一 tick，不等 200ms
+    assert l2.calls[0][1] == b"\x01" * 640
+
+
+def test_l2_result_overrides_l1_for_decision(tmp_path):
+    async def body():
+        c, events = _mk3(tmp_path, ScriptedTurnScorer({}, TurnScore(0.6, 0.4)),
+                         ScriptedTurnScorer({}, TurnScore(0.95, 0.9)))
+        await _speak_then_end(c, "book it")
+        return await _tick_until(c, END_TS + 2000), events
+    d, events = run(body())
+    assert d.reason == "score_threshold" and d.level == 2
+    assert d.decided_at_ms == END_TS + 200
+    assert [e["payload"]["level"] for e in _of(events, TURN_SCORE)] == [1, 2]
+
+
+def test_at_most_one_inflight_per_level(tmp_path):
+    async def body():
+        l2 = _Spy({}, TurnScore(0.5, 0.9), delay_ms=100)
+        c, _ = _mk3(tmp_path, ScriptedTurnScorer({}, TurnScore(0.6, 0.4)), l2)
+        await _speak_then_end(c, "book it")
+        await _sleep_to(END_TS + 90)
+        c.on_text("", False)  # 文本没变，不重复请求
+        await _sleep_to(END_TS + 280)
+        return l2
+    assert len(run(body()).calls) == 1
+
+
+def test_incomplete_does_not_escalate(tmp_path):
+    async def body():
+        l2 = _Spy({}, TurnScore(0.95, 0.9))
+        c, _ = _mk3(tmp_path, ScriptedTurnScorer({}, TurnScore(0.1, 0.9)), l2)
+        await _speak_then_end(c, "book it for")
+        await _sleep_to(END_TS + 300)
+        return l2
+    assert run(body()).calls == []
+
+
+def test_l3_timeout_falls_back_to_threshold_curve(tmp_path):
+    async def body():
+        c, events = _mk3(tmp_path, ScriptedTurnScorer({}, TurnScore(0.6, 0.9)),
+                         ScriptedTurnScorer({}, TurnScore(0.6, 0.4), raise_exc=True),
+                         ScriptedTurnScorer({}, TurnScore(0.99, 0.9), hang=True))
+        await _speak_then_end(c, "book it")
+        return await _tick_until(c, END_TS + 2000), events
+    d, events = run(body())
+    to = _of(events, PROVIDER_TIMEOUT)
+    assert len(to) == 1 and to[0]["payload"]["level"] == 3
+    assert to[0]["timestamp"] == END_TS + 80 + 500  # L2 失败后 L3 立即发起，500ms 预算
+    assert d.reason == "score_threshold" and d.level == 1  # 超时的 L3 不覆盖 L1 的真实分
+    assert d.decided_at_ms - END_TS == 780
+
+
+def test_audio_ring_is_bounded(tmp_path):
+    async def body():
+        c, _ = _mk3(tmp_path, RuleTurnScorer())
+        for i in range(500):  # 10 秒
+            c.feed_audio(bytes([i % 256]) * 640)
+        return c
+    c = run(body())
+    assert len(c._ring) == 150

@@ -96,7 +96,8 @@ class Session:
         self._decided: deque[_GateUtterance] = deque(maxlen=4)  # 最近判为噪声/搭腔的话（迟到的词）
         self._decide_task: asyncio.Task | None = None
         self._recent_pcm: deque[bytes] = deque(maxlen=cfg.pause_min_speech_frames)
-        self._cascade = EndpointCascade(cfg, log, [providers.l1], spawn=self._spawn)
+        self._cascade = EndpointCascade(cfg, log, [x for x in (providers.l1, providers.l2, providers.l3) if x is not None],
+                                        spawn=self._spawn)
         self._player = Player(cfg, log, self.queues["playback"], sink,
                               is_active=lambda gid: gid == self.active_generation_id,
                               ledgers=self._ledger_of,
@@ -244,6 +245,7 @@ class Session:
             if edge is not None:
                 self._on_speech_edge(edge)
             self._gate_on_frame(frame)
+            self._cascade.feed_audio(frame.pcm)
             before = asr_in.dropped_count
             await asr_in.put(frame)
             if asr_in.dropped_count > before:
