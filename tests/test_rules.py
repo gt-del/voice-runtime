@@ -37,3 +37,31 @@ def test_few_words_lowers_confidence():
 def test_empty_text_is_incomplete():
     s = score("   ")
     assert s.p_complete <= 0.3 and s.rules == ()
+
+
+@pytest.mark.parametrize("text", ["I think so.", "Yes, I do.", "I called her.", "What is this?", "I know that."])
+def test_ambiguous_word_with_punct_is_complete(text):
+    assert score(text).p_complete >= 0.85
+
+
+def test_ambiguous_word_without_punct_is_low_confidence():
+    s = score("I know that")
+    assert s.confidence < 0.5 and "trailing_function_word" in s.rules
+
+
+def test_ellipsis_is_not_terminal_punct():
+    s = score("Please book it for...")
+    assert "trailing_function_word" in s.rules and s.p_complete <= 0.3
+    assert "terminal_punct" not in score("wait...").rules
+    assert "terminal_punct" not in score("wait…").rules
+    assert score("Please book it for…").p_complete <= 0.3
+
+
+@pytest.mark.parametrize("text", ["Is it done?", "Stop it now!"])
+def test_question_and_exclamation_are_complete(text):
+    s = score(text)
+    assert s.p_complete >= 0.85 and "terminal_punct" in s.rules
+
+
+def test_three_words_has_no_few_words():
+    assert "few_words" not in score("book it Friday").rules
