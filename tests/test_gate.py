@@ -113,3 +113,20 @@ def test_utterance_audio_capped():
 def test_noise_timeout_inequality_holds_for_defaults():
     c = RuntimeConfig()
     assert c.noise_timeout_ms > 150 + 20 + 20  # final_latency + 最大抖动 + 一帧 asr_in 排队延迟
+
+
+@pytest.mark.parametrize("partial", ["okay sure", "got it yeah", "yeah yeah", "i see yeah", "got", "yeah i"])
+def test_multi_backchannel_partials_stay_pending(partial):
+    assert decide_sync(utt(partial), 100)[:2] == (GateResult.PENDING, "pending")
+
+
+@pytest.mark.parametrize("partial", ["make it", "okay but", "yeah make it"])
+def test_non_backchannel_partials_interrupt(partial):
+    assert decide_sync(utt(partial), 100)[:2] == (GateResult.INTERRUPT, "default_interrupt")
+
+
+def test_scorer_detail_distinguishes_fallback():
+    f = lambda sc: decide_sync(utt("yeah", "Yeah.", 100), 200, sc)[2]["scorer"]  # noqa: E731
+    assert f(FakeBackchannelScorer()) == "ok"
+    assert f(FakeBackchannelScorer(delay_ms=CFG.backchannel_budget_ms + 50)) == "timeout"
+    assert f(FakeBackchannelScorer(fail=True)) == "error"

@@ -59,9 +59,15 @@ def _is_pure_backchannel(tokens: list[str]) -> bool:
     return bool(tokens) and ok[-1]
 
 
-def _is_backchannel_prefix(tokens: list[str]) -> bool:
-    t = tuple(tokens)
-    return any(p[:len(t)] == t for p in _BACKCHANNELS)
+def _is_backchannel_compatible(tokens: list[str]) -> bool:
+    """tokens 可切分为附和词组，且最后一段允许是某个词组的前缀（说到一半）。"""
+    for j in range(len(tokens) + 1):
+        if not (j == 0 or _is_pure_backchannel(tokens[:j])):
+            continue
+        rest = tuple(tokens[j:])
+        if not rest or any(p[:len(rest)] == rest for p in _BACKCHANNELS):
+            return True
+    return False
 
 
 async def decide(u: Utterance, now_ms: int, cfg: RuntimeConfig,
@@ -89,19 +95,22 @@ async def decide(u: Utterance, now_ms: int, cfg: RuntimeConfig,
         # 3. 搭腔
         if _is_pure_backchannel(final_tokens):
             slices = [bytes(u.audio[i:i + SLICE_BYTES]) for i in range(0, len(u.audio), SLICE_BYTES)]
+            details["scorer"] = "ok"
             try:
                 async with asyncio.timeout(cfg.backchannel_budget_ms / 1000):
                     scores = await scorer.score(slices)
                 details["scores"] = list(scores)
                 if scores and max(scores) < cfg.backchannel_threshold:
                     return GateResult.INTERRUPT, "default_interrupt", details
-            except Exception:  # 含 TimeoutError；CancelledError 是 BaseException，照常传播
-                pass  # 评分超时或失败：视为满足
+            except TimeoutError:
+                details["scorer"] = "timeout"  # 评分超时：视为满足
+            except Exception:  # CancelledError 是 BaseException，照常传播
+                details["scorer"] = "error"  # 评分失败：视为满足
             return GateResult.BACKCHANNEL, "backchannel", details
         # 4. 已有 final → 默认打断
         return GateResult.INTERRUPT, "default_interrupt", details
 
     # 4. partial 提前默认打断
-    if len(partial_tokens) >= 2 and not _is_backchannel_prefix(partial_tokens):
+    if len(partial_tokens) >= 2 and not _is_backchannel_compatible(partial_tokens):
         return GateResult.INTERRUPT, "default_interrupt", details
     return GateResult.PENDING, "pending", details
