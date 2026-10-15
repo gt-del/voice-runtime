@@ -182,3 +182,59 @@ def test_scorers():
 
 def test_normalize_text():
     assert normalize_text("  Please, book IT for Wednesday!") == "please book it for wednesday"
+
+
+def _tts_text():
+    return _feed([(0, "alpha beta "), (5000, "gamma delta ")])
+
+
+def _cancel_midflight(make, late, hang_after=None):
+    async def body():
+        s = make(StreamFaults(100, 100, jitter_ms=0, late_after_cancel_ms=late, hang_after=hang_after))
+        task = asyncio.create_task(_timed(s), name="test/consumer")
+        await asyncio.sleep(0.5 if hang_after is None else 2)
+        t = now_ms()
+        s.cancel()
+        return t, await asyncio.wait_for(task, 10)
+
+    return run(body())
+
+
+def _llm_stream(f):
+    return FakeLLM({}, LONG, f).start([])
+
+
+def _tts_stream(f):
+    return FakeTTS(f).start(_tts_text())
+
+
+@pytest.mark.parametrize("make", [_llm_stream, _tts_stream])
+def test_cancel_from_other_task_without_late_ends_stream(make):
+    t, out = _cancel_midflight(make, ())
+    assert all(x <= t for x, _ in out)  # cancel 之后没有多出来的项
+
+
+@pytest.mark.parametrize("make", [_llm_stream, _tts_stream])
+def test_cancel_from_other_task_with_one_late_item(make):
+    t, out = _cancel_midflight(make, (50,))
+    assert [x - t for x, _ in out if x > t] == [50]
+
+
+def test_cancel_during_hang_releases_it():
+    t, out = _cancel_midflight(_llm_stream, (50,), hang_after=1)
+    assert [x - t for x, _ in out if x > t] == [50]
+
+
+def test_swallow_first_cancel_keeps_cancelling_count_consistent():
+    async def body():
+        s = _llm_stream(StreamFaults(100, 100, hang_after=0, swallow_first_cancel=True))
+        task = asyncio.create_task(anext(s), name="test/consumer")
+        await asyncio.sleep(1)
+        task.cancel()
+        await asyncio.sleep(1)
+        assert task.cancelling() == 0
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+
+    run(body())

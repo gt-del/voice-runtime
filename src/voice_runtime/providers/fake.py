@@ -14,6 +14,7 @@ from voice_runtime.vloop import now_ms
 
 _PUNCT = str.maketrans("", "", string.punctuation)
 _END = object()
+_WOKE = object()  # 进行中的等待被 cancel() 打断
 CHUNK_MS = 200
 ENERGY_RMS = 1000.0
 
@@ -62,6 +63,7 @@ class _FakeStream:
         self._late_n = 0
         self._cancelled_at: int | None = None
         self._swallowed = False
+        self._waiter: asyncio.Future | None = None
 
     def _jitter(self) -> int:
         return self._rng.randint(0, self._f.jitter_ms)
@@ -69,46 +71,68 @@ class _FakeStream:
     def cancel(self) -> None:
         if self._cancelled_at is None:
             self._cancelled_at = now_ms()
+        if self._waiter is not None and not self._waiter.done():
+            self._waiter.set_result(False)  # 唤醒正在进行的等待：cancel 胜出
 
     def __aiter__(self):
         return self
 
     async def __anext__(self):
-        item = await self._guarded(self._step())
+        while True:
+            try:
+                item = await self._step()
+                break
+            except asyncio.CancelledError:
+                if not self._f.swallow_first_cancel or self._swallowed:
+                    raise
+                # 测试专用：整个 src 里唯一允许吞掉取消的地方（第 1 次 CancelledError 吞掉，
+                # 第 2 次才退出），用来模拟不配合取消的下游，验证 Task 14 的关闭重试。
+                self._swallowed = True
+                asyncio.current_task().uncancel()
         if item is _END:
             raise StopAsyncIteration
         return item
 
-    async def _guarded(self, coro):
-        if not self._f.swallow_first_cancel:
-            return await coro
-        # 测试专用：整个 src 里唯一允许吞掉取消的地方（第 1 次 CancelledError 吞掉，第 2 次才退出），
-        # 用来模拟不配合取消的下游，验证 Task 14 的关闭重试。
-        inner = asyncio.create_task(coro, name="fake/stream-step")
-        while True:
-            try:
-                return await asyncio.shield(inner)
-            except asyncio.CancelledError:
-                if self._swallowed:
-                    inner.cancel()
-                    raise
-                self._swallowed = True
+    async def _wait(self, delay_ms: int | None) -> bool:
+        """等 delay_ms（None=永远）。正常结束返回 True；被 cancel() 唤醒返回 False。
+        只用一个 future + call_later，不派生任务。"""
+        if self._cancelled_at is not None:
+            return False
+        loop = asyncio.get_running_loop()
+        fut = self._waiter = loop.create_future()
+        handle = None
+        if delay_ms is not None:
+            handle = loop.call_later(max(delay_ms, 0) / 1000,
+                                     lambda: fut.done() or fut.set_result(True))
+        try:
+            return await fut
+        finally:
+            if handle:
+                handle.cancel()
+            self._waiter = None
+
+    async def _wait_until(self, due_ms: int) -> bool:
+        return await self._wait(due_ms - now_ms())
 
     async def _step(self):
-        if self._cancelled_at is not None:
-            if self._late_n >= len(self._f.late_after_cancel_ms):
-                return _END
-            await _sleep_until(self._cancelled_at + self._f.late_after_cancel_ms[self._late_n])
-            self._late_n += 1
-            return self._late_item()
-        if self._f.hang_after == self._n:
-            await _hang()
-        if self._f.raise_at == self._n:
-            raise RuntimeError("fake failure")
-        item = await self._produce()
-        if item is not _END:
-            self._n += 1
-        return item
+        while True:
+            if self._cancelled_at is not None:
+                if self._late_n >= len(self._f.late_after_cancel_ms):
+                    return _END
+                await _sleep_until(self._cancelled_at + self._f.late_after_cancel_ms[self._late_n])
+                self._late_n += 1
+                return self._late_item()
+            if self._f.hang_after == self._n:
+                await self._wait(None)
+                continue
+            if self._f.raise_at == self._n:
+                raise RuntimeError("fake failure")
+            item = await self._produce()
+            if item is _WOKE:
+                continue
+            if item is not _END:
+                self._n += 1
+            return item
 
     async def _produce(self):
         raise NotImplementedError
@@ -131,7 +155,8 @@ class _LlmStream(_FakeStream):
         f = self._f
         due = (self._start + f.first_delay_ms if self._idx == 0
                else self._last + f.interval_ms) + self._jitter()
-        await _sleep_until(due)
+        if not await self._wait_until(due):
+            return _WOKE
         self._last = now_ms()
         return self._take()
 
@@ -181,17 +206,38 @@ class _TtsStream(_FakeStream):
             self._pending.append((m.group(), s, e))
             self._scan = e
 
-    async def _fill(self) -> None:
-        while not self._eos and sum(word_duration_ms(w) for w, _, _ in self._pending) < CHUNK_MS:
+    async def _fetch(self):
+        async def nxt():
             try:
-                piece = await anext(self._src)
+                return await anext(self._src)
             except StopAsyncIteration:
+                return _END
+
+        task = asyncio.create_task(nxt(), name="fake/tts-fetch")
+        fut = self._waiter = asyncio.get_running_loop().create_future()
+        task.add_done_callback(lambda _: fut.done() or fut.set_result(True))
+        try:
+            await fut
+        finally:
+            self._waiter = None
+            if not task.done():
+                task.cancel()  # 必须在返回/抛出前回收；cancel 胜出时在途的这段文本会丢
+            await asyncio.wait({task})
+        return task.result() if fut.result() is True and not task.cancelled() else _WOKE
+
+    async def _fill(self) -> bool:
+        while not self._eos and sum(word_duration_ms(w) for w, _, _ in self._pending) < CHUNK_MS:
+            piece = await self._fetch()
+            if piece is _WOKE:
+                return False
+            if piece is _END:
                 self._eos = True
             else:
                 if self._first_text_at is None:
                     self._first_text_at = now_ms()
                 self._text += piece
             self._scan_words()
+        return True
 
     def _make_chunk(self, words: list[tuple[str, int, int]], end: int) -> AudioChunk:
         pcm, timings, t = b"", [], 0
@@ -208,13 +254,15 @@ class _TtsStream(_FakeStream):
         return chunk
 
     async def _produce(self):
-        await self._fill()
+        if self._cancelled_at is not None or not await self._fill():
+            return _WOKE
         if not self._pending:
             return _END
-        words, self._pending = self._pending, []
         base = (self._first_text_at + self._f.first_delay_ms if not self._started
                 else self._last_emit + self._f.interval_ms)
-        await _sleep_until(base + self._jitter())
+        if not await self._wait_until(base + self._jitter()):
+            return _WOKE  # pending 保留，作为 late 项的内容
+        words, self._pending = self._pending, []
         self._last_emit = now_ms()
         return self._make_chunk(words, words[-1][2])
 
@@ -263,26 +311,28 @@ class FakeASR:
             t = end
         return out
 
-    def _final_event(self, k: int, start: int, end: int) -> tuple[int, AsrEvent]:
+    def _final_event(self, k: int, start: int, end: int, floor: int) -> tuple[int, AsrEvent]:
         seg, t, words = self._script[k], start, []
         for w in (seg.text.split() if isinstance(seg, Speech) else []):
             words.append(AsrWord(w, t, t + word_duration_ms(w)))
             t += word_duration_ms(w)
         text = seg.text if isinstance(seg, Speech) else ""
-        return end + self._final + self._jitter(), AsrEvent("final", text, tuple(words), k, start, end)
+        return max(end + self._final + self._jitter(), floor), AsrEvent("final", text, tuple(words), k, start, end)
 
     async def run(self, frames: AsyncIterator[Frame]) -> AsyncIterator[AsrEvent]:
         due: list[tuple[int, AsrEvent]] = []
-        k, seg_start = -1, None  # 已检测到的段落序号；当前段落起点（段外为 None）
+        k, seg_start, floor = -1, None, 0  # 已检测到的段落序号；当前段落起点（段外为 None）
         async for frame in frames:
             if self._hang_at is not None and frame.ts_ms >= self._hang_at:
                 await _hang()
             loud = rms(frame.pcm) > ENERGY_RMS
             if loud and seg_start is None:
                 k, seg_start = k + 1, frame.ts_ms
-                due += self._partials(k, seg_start)
+                parts = self._partials(k, seg_start)
+                due += parts
+                floor = max((d for d, _ in parts), default=0)
             elif not loud and seg_start is not None:
-                due.append(self._final_event(k, seg_start, frame.ts_ms))
+                due.append(self._final_event(k, seg_start, frame.ts_ms, floor))
                 seg_start = None
             due.sort(key=lambda d: d[0])  # 稳定排序：同一到期时刻保持产生顺序
             while due and due[0][0] <= frame.ts_ms:
