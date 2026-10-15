@@ -201,6 +201,8 @@ def test_progress_ranges_cover_every_written_frame(tmp_path):
     written = [(w[1], w[2]) for w in r.sink.writes]
     assert len(written) == 23
     assert sorted(covered) == written  # 不重复、不遗漏
+    ts = [e["timestamp"] for e in r.of(PLAYBACK_PROGRESS)]
+    assert ts[:2] == [120, 130]  # 120ms 时满 100ms 补记；130ms 暂停时 flush 剩余
     last = r.of(PLAYBACK_PROGRESS)[-1]["payload"]
     assert last["played_ms"] == 23 * 20
 
@@ -340,3 +342,18 @@ def test_enqueued_text_keeps_whitespace_between_chunks():
     led.on_enqueued(0, 5)
     led.on_enqueued(1, 6)
     assert led.summary()["enqueued_text"] == "Sure, booking"
+
+
+def test_progress_cadence_is_exactly_progress_interval_while_playing(tmp_path):
+    async def main():
+        r = Rig(tmp_path)
+        await r.frames(1, 0, 30)
+        r.player.hold(1)
+        r.player.release(1)
+        r.start()
+        await asyncio.sleep(0.43)
+        return r
+
+    r = run(main())
+    assert [(e["timestamp"], e["payload"]["ranges"]) for e in r.of(PLAYBACK_PROGRESS)] == [
+        (120, [[1, 0, 4]]), (220, [[1, 5, 9]]), (320, [[1, 10, 14]]), (420, [[1, 15, 19]])]

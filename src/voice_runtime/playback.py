@@ -134,10 +134,10 @@ class Player:
     def _tick(self) -> None:
         if self.state is not GateState.PLAYING:
             return
-        self._take_one()
-        if (self.state is GateState.PLAYING and self._pending
-                and now_ms() - self._pending_since >= self._cfg.progress_interval_ms):
+        # 先补记已满一个周期的区间，再取本 tick 的帧，使 progress 严格每 progress_interval_ms 一次
+        if self._pending and now_ms() - self._pending_since >= self._cfg.progress_interval_ms:
             self._flush_progress()
+        self._take_one()
 
     def _take_one(self) -> None:
         """取到一帧有效帧写入、处理完一个 EOS 或队列取空为止；过期项同一 tick 内连续丢弃。"""
