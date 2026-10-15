@@ -1,7 +1,7 @@
 """Provider 协议与跨 Provider 共用的数据类型。"""
 from collections.abc import AsyncIterator, Awaitable
 from dataclasses import dataclass
-from typing import Literal, Protocol, TypeVar
+from typing import Literal, Protocol, TypeVar, runtime_checkable
 
 from voice_runtime.audio import AudioChunk, Frame
 
@@ -38,6 +38,7 @@ class ProviderStream(Protocol[T]):
     def cancel(self) -> None: ...
 
 
+@runtime_checkable
 class VAD(Protocol):
     def process(self, frame: Frame) -> float: ...
 
@@ -54,6 +55,7 @@ class TTS(Protocol):
     def start(self, text_stream: AsyncIterator[str]) -> ProviderStream[AudioChunk]: ...
 
 
+@runtime_checkable
 class TurnScorer(Protocol):
     def score(self, text: str, audio: bytes | None = None) -> Awaitable[TurnScore]: ...
 

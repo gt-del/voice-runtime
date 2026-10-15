@@ -10,7 +10,13 @@ dependencies = []
 
 [project.optional-dependencies]
 dev = ["pytest", "pytest-timeout"]
-real = []
+# 版本为作者选取的当前稳定版，本仓库内未经测试（适配器仅为接口示例）
+real = [
+    "onnxruntime==1.20.1",
+    "numpy==2.1.3",
+    "httpx==0.28.1",
+    "transformers==4.47.1",  # Smart Turn 的 Whisper 特征提取
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
