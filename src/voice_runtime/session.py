@@ -474,8 +474,8 @@ class Session:
         self._prune(gen.id)
         carry, self._gate = self._gate, None
         if carry is not None:
-            # 门禁中的那段话（打断者，或 generation 失败时正在评估的话）成为下一轮
-            self._hand_to_cascade(carry, "barge_in" if interrupted else "carry_over")
+            # 门禁中的那段话（打断者，或 generation 失败时正在评估的话）成为下一轮；只有真打断才记 barge_in
+            self._hand_to_cascade(carry, "barge_in" if outcome == "interrupted" else "carry_over")
         elif self._tracker.in_speech:
             # 用户正说到一半（播放期间开口）：这段话直接成为下一轮，后续的累计 ASR 文本归入新轮次
             self._open_turn("carry_over", self._tracker.speech_start_ms)

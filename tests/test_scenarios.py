@@ -213,10 +213,17 @@ def test_C_turn_started_causes(tmp_path):
 def test_C_purged_chunks_dropped_in_interrupted_truth(tmp_path):
     ev = run_scenario(scenario_c(), tmp_path).events
     stop = of(ev, "playback_stopped", reason="interrupted")[0]
-    chunks = stop["payload"]["playback_truth"]["chunks"]
-    enqueued = [c for c in chunks if c["enqueued"]]
-    unplayed = [c for c in enqueued if c["played_samples"] == 0]
-    assert unplayed and all(c["state"] == "dropped" for c in unplayed)
+    chunks = {c["chunk_id"]: c for c in stop["payload"]["playback_truth"]["chunks"]}
+    # chunk 5 播了 2560/3520 样本：仍是 played，标 truncated；chunk 6～10 一帧没播：dropped(barge_in, purge)
+    c5 = chunks[5]
+    assert (c5["state"], c5["truncated"], c5["played_samples"], c5["samples"]) == \
+        ("played", True, 2560, 3520)
+    assert "reason" not in c5
+    for cid in range(6, 11):
+        c = chunks[cid]
+        assert (c["state"], c["reason"], c["gate"], c["played_samples"]) == \
+            ("dropped", "barge_in", "purge", 0)
+    assert all(c["state"] == "played" and not c["truncated"] for cid, c in chunks.items() if cid < 5)
     purge = [p for p in of(ev, "stale_event_dropped", gate="purge")
              if p["generation_id"] == stop["generation_id"]][0]
     assert purge["payload"]["frames"] > 0

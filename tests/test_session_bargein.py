@@ -248,3 +248,23 @@ def test_backchannel_scorer_not_called_while_vad_reopened(tmp_path, monkeypatch)
     assert len(calls) == 1
     # 重新开口前的几帧也计入这段话的音频：两段各 100ms → 至少 200ms
     assert calls[0] * 80 >= 200
+
+
+def test_generation_failure_during_gate_carries_over_not_barge_in(tmp_path):
+    """门禁还在评估时 generation 失败：这段话进入下一轮，但不是打断，cause 记 carry_over。"""
+    yeah = "Yeah yeah yeah yeah yeah."  # 纯附和词：final 到达前一直 pending
+    segs = [Speech(REQUEST), AfterEvent("playback_started", 1000), Speech(yeah)]
+    sc = Scenario(name="fail_carry", segments=segs, llm_replies={}, default_reply=LONG_REPLY,
+                  llm_faults=LLM, tts_faults=StreamFaults(200, 40, raise_at=11),
+                  close_after=("context_committed", 2, 100),
+                  cfg_overrides={"speculation_enabled": False})
+    ev = run_scenario(sc, tmp_path).events
+    failed = of(ev, "generation_failed")[0]
+    assert failed["generation_id"] == 1
+    paused = of(ev, "playback_stopped", reason="paused_pending_decision")
+    assert paused and paused[0]["sequence_number"] < failed["sequence_number"]
+    assert not of(ev, "bargein_decision")  # 失败时门禁尚未判定
+    started = of(ev, "turn_started")
+    assert [s["payload"]["cause"] for s in started] == ["speech_start", "carry_over"]
+    assert started[1]["sequence_number"] > failed["sequence_number"]
+    assert of(ev, "context_committed", role="user")[0]["payload"]["outcome"] == "failed"

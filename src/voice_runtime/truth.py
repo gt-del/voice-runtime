@@ -15,10 +15,10 @@ class _Chunk:
 
     @property
     def state(self) -> str:
+        if self.played_frames:  # 播过一部分也算 played（truncated 标出没播完），不会再变成 dropped
+            return "played"
         if self.dropped:
             return "dropped"
-        if self.played_frames:
-            return "played"
         if self.enqueued_frames:
             return "enqueued"
         return "synthesized"
@@ -46,9 +46,10 @@ class TruthLedger:
         self._chunks[chunk_id].dropped = (reason, gate)
 
     def drop_unplayed(self, reason: str, gate: str) -> None:
-        """还有已入队未播的帧的 chunk 记为 dropped：invalidate 清除 playback 队列时，这些帧正是被清掉的那些。"""
+        """已入队但一帧都没播的 chunk 记为 dropped(reason, gate)：invalidate 清除 playback 队列时清掉的正是它们的帧。
+        播过一部分的 chunk 剩余帧同样被清掉，但它仍是 played（truncated=true），不记 dropped。"""
         for c in self._chunks.values():
-            if c.dropped is None and c.enqueued_frames > c.played_frames:
+            if c.dropped is None and c.played_frames == 0 and c.enqueued_frames > 0:
                 c.dropped = (reason, gate)
 
     def _heard_range(self) -> tuple[int, int] | None:
@@ -85,5 +86,6 @@ class TruthLedger:
                 "played_samples": min(c.played_frames * FRAME_SAMPLES, c.samples),
                 "truncated": c.enqueued_frames > 0 and c.played_frames * FRAME_SAMPLES < c.samples,
                 "state": c.state,
+                **({"reason": c.dropped[0], "gate": c.dropped[1]} if c.state == "dropped" else {}),
             } for cid, c in chunks],
         }

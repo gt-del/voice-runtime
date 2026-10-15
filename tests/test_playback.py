@@ -357,3 +357,21 @@ def test_progress_cadence_is_exactly_progress_interval_while_playing(tmp_path):
     r = run(main())
     assert [(e["timestamp"], e["payload"]["ranges"]) for e in r.of(PLAYBACK_PROGRESS)] == [
         (120, [[1, 0, 4]]), (220, [[1, 5, 9]]), (320, [[1, 10, 14]]), (420, [[1, 15, 19]])]
+
+
+def test_drop_unplayed_keeps_partially_played_chunk_played_and_truncated():
+    led = _sure_booking_ledger(7)  # chunk 0 播了 7/11 帧
+    led.on_synthesized(1, AudioChunk(bytes(80 * 32), (14, 18), [WordTiming("now.", 0, 80)]))
+    led.on_enqueued(1, 4)
+    led.drop_unplayed("barge_in", "purge")
+    c0, c1 = led.summary()["chunks"]
+    assert (c0["state"], c0["truncated"], c0["played_samples"]) == ("played", True, 7 * FRAME_SAMPLES)
+    assert "reason" not in c0 and "gate" not in c0
+    assert (c1["state"], c1["reason"], c1["gate"], c1["played_samples"]) == \
+        ("dropped", "barge_in", "purge", 0)
+
+
+def test_on_dropped_never_overrides_played_frames():
+    led = _sure_booking_ledger(3)
+    led.on_dropped(0, "late", "2")
+    assert led.summary()["chunks"][0]["state"] == "played"
