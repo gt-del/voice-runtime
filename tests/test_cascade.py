@@ -161,7 +161,8 @@ def test_scorer_exception_is_uncertain_not_fatal(tmp_path):
     d, events = run(body())
     failed = _of(events, TASK_FAILED)
     assert len(failed) == 1
-    assert failed[0]["payload"] == {"level": 1, "error": "RuntimeError: fake failure"}
+    assert failed[0]["payload"] == {"level": 1, "task": "session/score-l1",
+                                     "error": "RuntimeError: fake failure"}
     assert _of(events, TURN_SCORE)[0]["payload"]["decision"] == "uncertain"
     assert d.reason == "max_silence"
 
@@ -238,3 +239,55 @@ def test_decision_fires_once_until_reset_or_speech_start(tmp_path):
     c, first, again, third = run(body())
     assert first is not None and again is None and third is not None
     assert c.current_text == "" and c.latest_l1 is None
+
+
+def test_reset_with_inflight_score_logs_stale_under_old_turn(tmp_path):
+    async def body():
+        c, events = _mk(tmp_path, ScriptedTurnScorer({}, TurnScore(0.95, 0.9), delay_ms=40))
+        c.turn_id = 1
+        await _speak_then_end(c, "Book it for Wednesday afternoon.")
+        await _sleep_to(END_TS + 100)
+        c.reset()
+        c.turn_id = 2
+        await _sleep_to(END_TS + 200)
+        return c, events
+    c, events = run(body())
+    stale = _of(events, STALE_EVENT_DROPPED)
+    assert len(stale) == 1 and stale[0]["turn_id"] == 1
+    assert _of(events, TURN_SCORE) == []
+    assert c.latest_l1 is None
+
+
+def test_reset_clears_silence_so_no_decision_without_new_speech_end(tmp_path):
+    async def body():
+        c, _ = _mk(tmp_path, RuleTurnScorer())
+        await _speak_then_end(c, "Please book it for")
+        c.reset()
+        c.on_text("Book it for Wednesday afternoon.", True)
+        return await _tick_until(c, END_TS + 3000)
+    assert run(body()) is None
+
+
+def test_empty_final_adds_nothing(tmp_path):
+    c, _ = _mk(tmp_path, RuleTurnScorer())
+    c.on_text("book it", True)
+    version = c.text_version
+    c.on_text("", True)
+    c.on_text("now", True)
+    assert c.current_text == "book it now"
+    assert c.text_version == version + 1
+
+
+def test_on_l1_scored_exception_is_logged_not_fatal(tmp_path):
+    async def body():
+        c, events = _mk(tmp_path, RuleTurnScorer())
+
+        def boom(s, t):
+            raise ValueError("bad")
+        c.on_l1_scored = boom
+        await _speak_then_end(c, "Book it for Wednesday afternoon.")
+        return await _tick_until(c, END_TS + 2000), events
+    d, events = run(body())
+    failed = _of(events, TASK_FAILED)
+    assert [f["payload"] for f in failed] == [{"task": "session/score-l1", "error": "ValueError: bad"}]
+    assert d.reason == "score_threshold" and d.decided_at_ms == END_TS + 200

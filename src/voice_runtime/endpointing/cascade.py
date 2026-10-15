@@ -65,7 +65,8 @@ class EndpointCascade:
     def on_text(self, text: str, is_final: bool) -> None:
         before = self.current_text
         if is_final:
-            self._finals.append(text)
+            if text:
+                self._finals.append(text)
             self._partial = ""
         else:
             self._partial = text
@@ -95,6 +96,7 @@ class EndpointCascade:
         self.have_final_for_last_segment = False
         self.text_version += 1
         self.latest_l1 = None
+        self._silence_start_ms = None  # 旧 speech_end 不再生效，需等新的 end 边沿
         self._decided = False
 
     def _decide(self, d: EndpointDecision) -> EndpointDecision:
@@ -104,23 +106,26 @@ class EndpointCascade:
     def _score_l1(self) -> None:
         text = self.current_text
         if text:
-            self._spawn(self._run_l1(text, self._epoch, self.text_version), "session/score-l1")
+            self._spawn(self._run_l1(text, self._epoch, self.text_version, self.turn_id),
+                        "session/score-l1")
 
-    async def _run_l1(self, text: str, epoch: int, version: int) -> None:
+    async def _run_l1(self, text: str, epoch: int, version: int, turn_id: int | None) -> None:
+        # 事件的 turn_id 取发起请求时的值（设计 §8.1），迟到结果仍归属旧轮次。
         started = now_ms()
         score: TurnScore | None = None
         try:
             async with asyncio.timeout(self._cfg.l1_budget_ms / 1000):
                 score = await self._scorers[0].score(text)
         except TimeoutError:
-            self._log.emit(PROVIDER_TIMEOUT, turn_id=self.turn_id, level=1)
+            self._log.emit(PROVIDER_TIMEOUT, turn_id=turn_id, level=1)
         except Exception as e:
-            self._log.emit(TASK_FAILED, turn_id=self.turn_id, level=1, error=f"{type(e).__name__}: {e}")
+            self._log.emit(TASK_FAILED, turn_id=turn_id, task="session/score-l1", level=1,
+                           error=f"{type(e).__name__}: {e}")
         if (epoch, version) != (self._epoch, self.text_version):
-            self._log.emit(STALE_EVENT_DROPPED, turn_id=self.turn_id, gate="endpoint", phase="late",
+            self._log.emit(STALE_EVENT_DROPPED, turn_id=turn_id, gate="endpoint", phase="late",
                            level=1, epoch=epoch, text_version=version)
             return
-        self._log.emit(TURN_SCORE, turn_id=self.turn_id, level=1,
+        self._log.emit(TURN_SCORE, turn_id=turn_id, level=1,
                        p=score.p_complete if score else None,
                        confidence=score.confidence if score else None,
                        rules=list(score.rules) if score else [],
@@ -130,7 +135,11 @@ class EndpointCascade:
             return
         self.latest_l1 = score
         if self.on_l1_scored is not None:
-            self.on_l1_scored(score, text)
+            try:
+                self.on_l1_scored(score, text)
+            except Exception as e:
+                self._log.emit(TASK_FAILED, turn_id=turn_id, task="session/score-l1",
+                               error=f"{type(e).__name__}: {e}")
 
     def _classify(self, s: TurnScore | None) -> str:
         if s is None or s.confidence < self._cfg.min_conf:
