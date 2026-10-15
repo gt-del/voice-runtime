@@ -91,3 +91,19 @@ def test_close_wakes_blocked_getter_and_putter():
 def test_capacity_must_be_positive():
     with pytest.raises(ValueError):
         BoundedQueue("x", 0)
+
+
+def test_get_nowait_returns_none_when_empty_and_wakes_putters():
+    async def main():
+        q = BoundedQueue("p", 1)
+        assert q.get_nowait() is None
+        await q.put(1)
+        t = asyncio.create_task(q.put(2), name="t")
+        await asyncio.sleep(0)
+        assert not t.done()
+        got = q.get_nowait()
+        put_ok = await t
+        q.close()
+        return got, put_ok, q.get_nowait()
+
+    assert run(main()) == (1, True, None)

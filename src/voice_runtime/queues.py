@@ -77,6 +77,13 @@ class BoundedQueue(Generic[T]):
         self._wake(self._putters)
         return item
 
+    def get_nowait(self) -> T | None:
+        if not self._items:
+            return None
+        item = self._items.popleft()
+        self._wake(self._putters)
+        return item
+
     def purge(self, pred: Callable[[T], bool]) -> int:
         kept = [x for x in self._items if not pred(x)]
         removed = len(self._items) - len(kept)
