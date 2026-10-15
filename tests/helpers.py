@@ -6,6 +6,7 @@ from pathlib import Path
 from voice_runtime.config import RuntimeConfig
 from voice_runtime.endpointing.rules import RuleTurnScorer
 from voice_runtime.events import EventLog
+from voice_runtime.metrics import compute_metrics
 from voice_runtime.playback import FakeSink
 from voice_runtime.providers.fake import (FakeASR, FakeBackchannelScorer, FakeLLM, FakeTTS,
                                           FakeVAD)
@@ -85,6 +86,6 @@ def run_scenario(sc: Scenario, tmp_path: Path, *, max_virtual_ms: int = 60000,
         if forced:
             raise AssertionError(
                 f"{sc.name}: close_after {sc.close_after} 未在 {max_virtual_ms}ms 内触发")
-        return ScenarioResult(events, {}, sink, reason, session, state_at_close)
+        return ScenarioResult(events, compute_metrics(events), sink, reason, session, state_at_close)
     finally:
         log.close()

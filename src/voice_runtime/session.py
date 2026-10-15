@@ -9,7 +9,7 @@ from typing import Any
 from voice_runtime.audio import FRAME_MS, Frame
 from voice_runtime.config import RuntimeConfig
 from voice_runtime.endpointing.cascade import EndpointCascade, EndpointDecision
-from voice_runtime.events import (ASR_FINAL, ASR_PARTIAL, AUDIO_FRAME, BARGEIN_DECISION,
+from voice_runtime.events import (ASR_FINAL, ASR_PARTIAL, AUDIO_FRAME, BARGEIN_DECISION, CLOSE_TIMEOUT,
                                   CONTEXT_COMMITTED, ENDPOINT_COMMITTED, GENERATION_CANCELLED, GENERATION_FAILED,
                                   PLAYBACK_STARTED, QUEUE_OVERFLOW, SESSION_CLOSED, SPEECH_END,
                                   SPEECH_START, STALE_EVENT_DROPPED, EventLog)
@@ -106,7 +106,10 @@ class Session:
         self._tasks: set[asyncio.Task] = set()
         self._stop_event = asyncio.Event()
         self._close_reason: CloseReason | None = None
-        self._shut_down = False
+        self._closing = False
+        self._closed_written = False
+        self._overdue: set[str] = set()  # 出现在 close_timeout 中的任务名
+        self._text_max_depth = 0  # 已清理的 generation 的 text 队列最大长度
         log.add_listener(self._on_log_event)
 
     # ---- 公共接口 ----
@@ -117,6 +120,8 @@ class Session:
         self._stop_event.set()
 
     async def run(self) -> CloseReason:
+        """§10.4 / §13：TaskGroup 外层用 except* 走异常路径；关闭序列的收尾放在 finally 中并用
+        shield 保护（外部取消 run() 时也能完整写出 session_closed）。"""
         error = None
         try:
             async with asyncio.TaskGroup() as tg:
@@ -126,19 +131,17 @@ class Session:
                 self._spawn(self._control(), "session/control")
                 self._spawn(self._player.run(), "session/player")
                 await self._stop_event.wait()
-                self._shutdown()
+                self._begin_close()  # 第 1～3 步
+                await self._stop_tasks()  # 第 4、5 步
         except* Exception as eg:
             e = eg.exceptions[0]
             error = f"{type(e).__name__}: {e}"
             self._close_reason = CloseReason.SESSION_TASK_FAILED
-            self._shutdown()
         finally:
             self._tg = None
-        self.state = SessionState.CLOSED
-        reason = self._close_reason
-        self._log.emit(SESSION_CLOSED, turn_id=self._tid, reason=str(reason),
-                       **({"error": error} if error else {}))
-        return reason
+            closer = asyncio.create_task(self._finish_close(error), name="session/close")
+            await asyncio.shield(closer)
+        return self._close_reason
 
     def invalidate(self, gen: Generation, reason: str) -> None:
         """设计 §10.1 第 1、2 步 + 发取消信号；同步执行，中间没有 await。按 generation 幂等。"""
@@ -170,20 +173,64 @@ class Session:
         task.add_done_callback(self._tasks.discard)
         return task
 
-    def _shutdown(self) -> None:
-        """最简关闭（Task 14 替换为完整的关闭序列）：作废在播 generation、关播放器、取消所有任务。"""
-        if self._shut_down:
+    def _begin_close(self) -> None:
+        """关闭第 1～3 步（同步、幂等）：CLOSING → 作废 generation → 停播并关闭播放器。"""
+        if self._closing:
             return
-        self._shut_down = True
+        self._closing = True
+        audible = self.state in (SessionState.PLAYING, SessionState.PAUSED)
         self.state = SessionState.CLOSING
         gid = self.active_generation_id
         if gid is not None:
-            if self._player.current_generation == gid:
-                self._player.stop_generation(gid, "session_closed")
             self.invalidate(self._gens[gid], "session_closed")
+        cur = self._player.current_generation
+        if audible and cur is not None:  # 正在播（含暂停中）：停播并附 Playback Truth
+            self._player.stop_generation(cur, "session_closed")
         self._player.close()
-        for t in list(self._tasks):
-            t.cancel()
+
+    async def _stop_tasks(self) -> None:
+        """关闭第 4、5 步：取消 session/* 循环，等所有任务退出；每超过一个 close_grace_ms
+        写一条 close_timeout 并对仍未退出的任务再 cancel() 一次。"""
+        for t in self._tasks:
+            if t.get_name().startswith("session/"):
+                t.cancel()
+        me = asyncio.current_task()
+        rnd = 0
+        while True:
+            # 包括 generation TaskGroup 里的子任务：supervisor 已在 __aexit__ 中时，再取消它不会再传给子任务
+            alive = [t for t in asyncio.all_tasks() if t is not me and not t.done()
+                     and t.get_name().startswith(("session/", "gen-"))]
+            if not alive:
+                return
+            _, pending = await asyncio.wait(alive, timeout=self.cfg.close_grace_ms / 1000)
+            pending = sorted((t for t in pending if not t.done()), key=asyncio.Task.get_name)
+            if not pending:
+                continue
+            rnd += 1
+            names = [t.get_name() for t in pending]
+            self._overdue.update(names)
+            self._log.emit(CLOSE_TIMEOUT, turn_id=self._tid, round=rnd, tasks=names)
+            for t in pending:
+                t.cancel()
+
+    async def _finish_close(self, error: str | None) -> None:
+        """关闭第 6、7 步（异常路径与外部取消时先补做第 1～3 步的同步部分）。只写一次 session_closed。"""
+        if self._closed_written:
+            return
+        self._begin_close()
+        if self._close_reason is None:  # 外部直接取消了 run()
+            self._close_reason = CloseReason.EXPLICIT_CLOSE
+        residual = {name: q.close() for name, q in self.queues.items()}
+        residual["text"] = sum(g.text_queue.close() for g in self._gens.values())
+        max_depth = {name: q.max_depth for name, q in self.queues.items()}
+        max_depth["text"] = max([self._text_max_depth,
+                                 *(g.text_queue.max_depth for g in self._gens.values())])
+        self.state = SessionState.CLOSED
+        self._closed_written = True
+        self._log.emit(SESSION_CLOSED, turn_id=self._tid, reason=str(self._close_reason),
+                       residual=residual, queue_max_depth=max_depth,
+                       overdue_task_count=len(self._overdue),
+                       **({"error": error} if error else {}))
 
     # ---- session 级循环 ----
 
@@ -307,7 +354,9 @@ class Session:
         if (gid == self.active_generation_id or gid == self._player.current_generation
                 or gid in self._running_sups):
             return
-        self._gens.pop(gid, None)
+        gen = self._gens.pop(gid, None)
+        if gen is not None:
+            self._text_max_depth = max(self._text_max_depth, gen.text_queue.max_depth)
         self._sups.pop(gid, None)
 
     def _turn_of(self, gid: int) -> int | None:
