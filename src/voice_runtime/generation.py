@@ -16,6 +16,7 @@ from voice_runtime.truth import TruthLedger
 from voice_runtime.vloop import now_ms
 
 FRAME_BYTES = FRAME_SAMPLES * 2
+_TIMED_OUT = object()  # 我们自己的截止时间到期（区别于 provider 自己抛出的 TimeoutError）
 
 
 class GenState(StrEnum):
@@ -158,11 +159,13 @@ class GenerationSupervisor:
         return stream
 
     async def _next(self, role: str, stream: ProviderStream, when: float | None):
-        """只给"等上游下一项"计时；流结束返回 None。超时抛 TimeoutError。"""
+        """只给"等上游下一项"计时；流结束返回 None，截止时间到期返回 _TIMED_OUT。
+        provider 自己抛出的 TimeoutError 照常向上抛，按任务异常处理。"""
         if self.gen.cancelled_at_ms is not None:
             when = None
+        cm = asyncio.timeout_at(when)
         try:
-            async with asyncio.timeout_at(when) as cm:
+            async with cm:
                 self._waits[role] = cm
                 try:
                     return await anext(stream)
@@ -170,13 +173,22 @@ class GenerationSupervisor:
                     del self._waits[role]
         except StopAsyncIteration:
             return None
+        except TimeoutError:
+            if cm.expired():
+                return _TIMED_OUT
+            raise
 
     def _on_timeout(self, provider: str, first: bool) -> None:
-        self._emit(PROVIDER_TIMEOUT, provider=provider, first=first)
+        if self.gen.cancelled_at_ms is not None:  # 超时与取消同时发生时，以取消为准
+            return
         if first:
+            self._emit(PROVIDER_TIMEOUT, provider=provider, first=True)
             self._on_failed(self.gen, "first_chunk_timeout")
             self.signal_cancel()
         else:
+            # finish 会关闭 text 队列，TTS 尚未读走的文本随之丢弃，数量记在这里
+            self._emit(PROVIDER_TIMEOUT, provider=provider, first=False,
+                       discarded_text_pieces=self.gen.text_queue.depth)
             self.finish()
 
     async def _llm_bridge(self) -> None:
@@ -185,11 +197,9 @@ class GenerationSupervisor:
         when = loop.time() + self._cfg.llm_first_timeout_ms / 1000
         first = True
         while True:
-            try:
-                text = await self._next("llm", stream, when)
-            except TimeoutError:
-                if self.gen.cancelled_at_ms is None:  # 超时与取消同时发生时，以取消为准
-                    self._on_timeout("llm", first)
+            text = await self._next("llm", stream, when)
+            if text is _TIMED_OUT:
+                self._on_timeout("llm", first)
                 continue
             if text is None:
                 break
@@ -212,14 +222,15 @@ class GenerationSupervisor:
             try:
                 piece = await self.gen.text_queue.get()
             except QueueClosed:
-                return
+                piece = None
             finally:
                 self._tts_starved = False
-            if piece is None:
-                return
             if self._tts_text_at is None:
                 self._tts_text_at = loop.time()
+            # 交出文本、或文本已全部交出（EOS）时重新计时：TTS 剩下的冲刷也不能无限等
             self._reschedule_tts(self._tts_deadline())
+            if piece is None:
+                return
             yield piece
 
     def _tts_deadline(self) -> float | None:
@@ -241,11 +252,9 @@ class GenerationSupervisor:
         chunk_id = 0
         frame_index = 0
         while True:
-            try:
-                chunk = await self._next("tts", stream, self._tts_deadline())
-            except TimeoutError:
-                if self.gen.cancelled_at_ms is None:
-                    self._on_timeout("tts", not self._tts_got_first)
+            chunk = await self._next("tts", stream, self._tts_deadline())
+            if chunk is _TIMED_OUT:
+                self._on_timeout("tts", not self._tts_got_first)
                 continue
             if chunk is None:
                 break
@@ -277,10 +286,14 @@ class GenerationSupervisor:
             chunk_id += 1
         await self._put_eos()
 
+    def _accept_eos(self, _item) -> bool:
+        return self._is_active(self.gen)  # EOS 过闸②只看 is_active：finish 之后的 EOS 仍需放行
+
     async def _put_eos(self) -> None:
         self._eos_sent = True
+        live = self._received_live()
         eos = PlaybackEOS(self.gen.id, truncated=self.gen.state is GenState.UPSTREAM_CLOSED)
-        # EOS 过闸②只看 is_active：finish 之后的 EOS 仍需放行
-        accept = lambda _: self._is_active(self.gen)  # noqa: E731
-        if accept(eos):
-            await self._playback.put(eos, accept)
+        if not (self._accept_eos(eos) and await self._playback.put(eos, self._accept_eos)):
+            # EOS 不受 UPSTREAM_CLOSED 拦截，被拒只可能是 is_active 为假，所以闸固定记 "2"
+            self._emit(STALE_EVENT_DROPPED, gate="2",
+                       phase="rejected_on_wake" if live else "late", unit="eos")

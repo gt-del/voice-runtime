@@ -13,15 +13,24 @@ from voice_runtime.truth import TruthLedger
 from voice_runtime.vloop import now_ms, run
 
 REPLY = "hello there how are you today"
+_LOGS: list[EventLog] = []
+
+
+@pytest.fixture(autouse=True)
+def _close_logs():
+    yield
+    while _LOGS:
+        _LOGS.pop().close()
 
 
 class Rig:
     """直接构造 supervisor；is_active 是一个简单开关，invalidate 由测试模拟 Session 完成。"""
 
     def __init__(self, tmp_path, *, reply=REPLY, llm=None, tts=None, playback_capacity=75,
-                 cfg=None):
+                 cfg=None, llm_provider=None):
         self.events: list[dict] = []
         self.log = EventLog(tmp_path / "e.jsonl", "s")
+        _LOGS.append(self.log)
         self.log.add_listener(self.events.append)
         self.playback = BoundedQueue("playback", playback_capacity)
         self.gen = Generation(id=1, turn_id=7, user_text="hi", speculative=False,
@@ -31,7 +40,7 @@ class Rig:
         self.failed: list[str] = []
         self.sup = GenerationSupervisor(
             self.gen, cfg or RuntimeConfig(), self.log,
-            FakeLLM({}, reply, llm or StreamFaults(100, 100, jitter_ms=0)),
+            llm_provider or FakeLLM({}, reply, llm or StreamFaults(100, 100, jitter_ms=0)),
             FakeTTS(tts or StreamFaults(100, 100, jitter_ms=0)),
             [{"role": "user", "content": "hi"}], self.playback,
             is_active=lambda g: self.active and g is self.gen,
@@ -111,9 +120,10 @@ def test_cancel_drains_late_chunks_as_stale_late(tmp_path):
         r.invalidate()
         cancelled_at = now_ms()
         await task
-        late = r.of(STALE_EVENT_DROPPED, gate="2", phase="late")
+        late = r.of(STALE_EVENT_DROPPED, gate="2", phase="late", unit="chunk")
         assert len(late) == 2
-        assert all(e["payload"]["unit"] == "chunk" for e in late)
+        eos = r.of(STALE_EVENT_DROPPED, unit="eos")
+        assert [e["payload"] for e in eos] == [{"gate": "2", "phase": "late", "unit": "eos"}]
         assert [e["timestamp"] - cancelled_at for e in late] == [50, 400]
         assert r.playback.depth == 0  # purge 之后没有新的帧进入
         assert not r.of(STALE_EVENT_DROPPED, phase="rejected_on_wake")
@@ -137,7 +147,7 @@ def test_blocked_put_rejected_on_wake_is_not_counted_late(tmp_path):
         assert len(wake) == 1
         assert wake[0]["payload"] == {"gate": "2", "phase": "rejected_on_wake", "unit": "chunk",
                                       "chunk_id": 0}
-        assert not r.of(STALE_EVENT_DROPPED, phase="late")
+        assert not r.of(STALE_EVENT_DROPPED, phase="late", unit="chunk")
         assert r.playback.depth == 0
         chunk0 = r.gen.ledger.summary()["chunks"][0]
         assert chunk0["state"] == "dropped" and chunk0["enqueued"]
@@ -197,7 +207,7 @@ def test_mid_stream_timeout_finishes_with_truncated_eos_and_gate_finished(tmp_pa
         await r.sup.run()
         timeouts = r.of(PROVIDER_TIMEOUT)
         assert [(e["timestamp"], e["payload"]) for e in timeouts] == [
-            (1300, {"provider": "llm", "first": False})]
+            (1300, {"provider": "llm", "first": False, "discarded_text_pieces": 0})]
         assert r.gen.state is GenState.UPSTREAM_CLOSED
         assert not r.failed
         finished = r.of(STALE_EVENT_DROPPED, gate="finished")
@@ -219,6 +229,63 @@ def test_llm_exception_reports_task_failed_and_does_not_propagate(tmp_path):
         failed = r.of(TASK_FAILED)
         assert [e["payload"] for e in failed] == [
             {"task": "gen-1/llm_bridge", "error": "RuntimeError: fake failure"}]
+        assert r.failed == ["task_failed"]
+
+    run(main())
+
+
+def test_tts_mid_stream_timeout_on_final_flush_finishes(tmp_path):
+    async def main():
+        # 文本 EOS 在 t=300 交出后，TTS 的最后一个 chunk 要到 5200 才来：按 inter_chunk 超时
+        r = Rig(tmp_path, reply="hello there how", tts=StreamFaults(100, 5000, jitter_ms=0))
+        await r.sup.run()
+        timeouts = r.of(PROVIDER_TIMEOUT)
+        assert [(e["timestamp"], e["payload"]) for e in timeouts] == [
+            (1300, {"provider": "tts", "first": False, "discarded_text_pieces": 0})]
+        assert r.gen.state is GenState.UPSTREAM_CLOSED and not r.failed
+        assert now_ms() == 1300
+        assert r.drain()[-1] == PlaybackEOS(1, truncated=True)
+
+    run(main())
+
+
+def test_tts_time_starved_for_text_is_not_counted(tmp_path):
+    async def main():
+        # 首个 chunk 在 t=200；之后 4 个短词每 600ms 来一个，TTS 等文本 2300ms 才凑够下一个 chunk，
+        # 超过 inter_chunk_timeout_ms，但这段时间是在等 LLM，不算 TTS 超时
+        r = Rig(tmp_path, reply="extraordinarily a b c d e", llm=StreamFaults(100, 600, jitter_ms=0))
+        await r.sup.run()
+        assert not r.of(PROVIDER_TIMEOUT) and not r.failed
+        assert [e["timestamp"] for e in r.of(TTS_CHUNK)] == [200, 2500, 3100]
+        assert r.drain()[-1] == PlaybackEOS(1, truncated=False)
+
+    run(main())
+
+
+class _TimeoutRaisingStream:
+    def __aiter__(self):
+        return self
+
+    async def __anext__(self):
+        await asyncio.sleep(0.1)
+        raise TimeoutError("provider deadline")
+
+    def cancel(self):
+        pass
+
+
+class _TimeoutRaisingLLM:
+    def start(self, messages):
+        return _TimeoutRaisingStream()
+
+
+def test_provider_raised_timeout_error_is_task_failure_not_provider_timeout(tmp_path):
+    async def main():
+        r = Rig(tmp_path, llm_provider=_TimeoutRaisingLLM())
+        await r.sup.run()
+        assert not r.of(PROVIDER_TIMEOUT)
+        assert [e["payload"] for e in r.of(TASK_FAILED)] == [
+            {"task": "gen-1/llm_bridge", "error": "TimeoutError: provider deadline"}]
         assert r.failed == ["task_failed"]
 
     run(main())
