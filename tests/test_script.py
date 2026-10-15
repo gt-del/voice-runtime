@@ -98,3 +98,28 @@ def test_disconnect_ends_iteration_and_silence_continues_otherwise(tmp_path):
 
 def test_speech_louder_than_threshold_noise_louder_still():
     assert rms(tone(20, 12000)) > rms(tone(20, 3000)) > 1000 > rms(tone(20, 0))
+
+
+def test_unrelated_events_do_not_grow_source_state(tmp_path):
+    async def body():
+        log = EventLog(tmp_path / "e.jsonl", "s")
+        src = ScriptedAudioSource([AfterEvent("playback_started", 0), Silence(20)], log)
+        for _ in range(1000):
+            log.emit("audio_frame")
+        log.emit("playback_started")
+        return src
+
+    src = run(body())
+    assert len(src._counts) == 1 and len(src._times) == 1
+
+
+def test_unknown_segment_type_raises_type_error(tmp_path):
+    async def body():
+        log = EventLog(tmp_path / "e.jsonl", "s")
+        src = ScriptedAudioSource(["bogus"], log)
+        async for _ in src.frames():
+            pass
+
+    import pytest
+    with pytest.raises(TypeError):
+        run(body())

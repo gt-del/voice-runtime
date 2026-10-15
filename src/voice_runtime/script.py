@@ -51,15 +51,19 @@ class ScriptedAudioSource:
         self._segments = segments
         self._log = log
         self._seq = 0
-        self._counts: dict[str, int] = {}
+        self._watch = {(g.event_type, g.nth) for g in segments if isinstance(g, AfterEvent)}
+        self._counts: dict[str, int] = {et: 0 for et, _ in self._watch}
         self._times: dict[tuple[str, int], int] = {}
         self.disconnected = False
         log.add_listener(self._on_event)
 
     def _on_event(self, event: dict) -> None:
         et = event["event_type"]
-        n = self._counts[et] = self._counts.get(et, 0) + 1
-        self._times[(et, n)] = event["timestamp"]
+        if et not in self._counts:
+            return
+        n = self._counts[et] = self._counts[et] + 1
+        if (et, n) in self._watch:
+            self._times[(et, n)] = event["timestamp"]
 
     def _marker(self, segment: str, phase: str, index: int, text: str = "") -> None:
         self._log.emit(SCRIPT_MARKER, eval_only=True, segment=segment, phase=phase,
@@ -98,11 +102,13 @@ class ScriptedAudioSource:
                     async for f in self._emit(silence):
                         yield f
                 continue
-            else:
+            elif isinstance(seg, Disconnect):
                 self._marker("disconnect", "start", index)
                 self._marker("disconnect", "end", index)
                 self.disconnected = True
                 return
+            else:
+                raise TypeError(f"unknown segment type: {type(seg).__name__}")
             async for f in gen:
                 yield f
         while True:
