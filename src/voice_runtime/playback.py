@@ -73,7 +73,7 @@ class Player:
         self.on_generation_done: Callable[[int, str], None] = lambda gen, reason: None
         self._written = 0  # 当前 generation 已写入 sink 的帧数
         self._pending: list[list[int]] = []  # 尚未记入 progress 的帧区间 [gen, first, last]
-        self._pending_frames = 0
+        self._pending_since = 0  # 第一个未记录帧的写入时刻
         self._underrun = False
         self._paused_at = 0
 
@@ -88,7 +88,6 @@ class Player:
         self.current_generation = generation_id
         self._written = 0
         self._pending = []
-        self._pending_frames = 0
         self._underrun = False
 
     def release(self, generation_id: int) -> None:
@@ -135,40 +134,53 @@ class Player:
     def _tick(self) -> None:
         if self.state is not GateState.PLAYING:
             return
-        item = self._queue.get_nowait()
-        if item is None:
-            if not self._underrun:
-                self._underrun = True
-                self._emit(PLAYBACK_UNDERRUN, self.current_generation)
-            return
-        gen = item.generation_id
-        # 闸③：非当前或已失效的 generation 一律不写 sink
-        stale = gen != self.current_generation or not self._is_active(gen)
-        if isinstance(item, PlaybackEOS):
-            if stale:
-                self._emit(STALE_EVENT_DROPPED, gen, gate="3", phase="late", unit="eos")
+        self._take_one()
+        if (self.state is GateState.PLAYING and self._pending
+                and now_ms() - self._pending_since >= self._cfg.progress_interval_ms):
+            self._flush_progress()
+
+    def _take_one(self) -> None:
+        """取到一帧有效帧写入、处理完一个 EOS 或队列取空为止；过期项同一 tick 内连续丢弃。"""
+        while True:
+            item = self._queue.get_nowait()
+            if item is None:
+                # 欠载只在本 generation 已开播后才计
+                if self._written and not self._underrun:
+                    self._underrun = True
+                    self._emit(PLAYBACK_UNDERRUN, self.current_generation)
                 return
-            reason = "truncated" if item.truncated else "completed"
-            self.stop_generation(gen, reason)
-            self.on_generation_done(gen, reason)
+            gen = item.generation_id
+            # 闸③：非当前或已失效的 generation 一律不写 sink
+            stale = gen != self.current_generation or not self._is_active(gen)
+            if isinstance(item, PlaybackEOS):
+                if stale:
+                    self._emit(STALE_EVENT_DROPPED, gen, gate="3", phase="late", unit="eos")
+                    continue
+                reason = "truncated" if item.truncated else "completed"
+                self.stop_generation(gen, reason)
+                self.on_generation_done(gen, reason)
+                return
+            if stale:
+                self._emit(STALE_EVENT_DROPPED, gen, gate="3", phase="late", unit="frame",
+                           frame_index=item.frame_index)
+                continue
+            self._write(item)
             return
-        if stale:
-            self._emit(STALE_EVENT_DROPPED, gen, gate="3", phase="late", unit="frame",
-                       frame_index=item.frame_index)
-            return
+
+    def _write(self, item: PlaybackFrame) -> None:
+        gen = item.generation_id
         self._sink.write(gen, item.frame_index, item.pcm)
         self._ledgers(gen).on_played(item.chunk_id, item.frame_index)
         self._written += 1
         self._underrun = False
         if self._written == 1:
             self._emit(PLAYBACK_STARTED, gen)
+        if not self._pending:
+            self._pending_since = now_ms()
         if self._pending and self._pending[-1][2] + 1 == item.frame_index:
             self._pending[-1][2] = item.frame_index
         else:
             self._pending.append([gen, item.frame_index, item.frame_index])
-        self._pending_frames += 1
-        if self._pending_frames * FRAME_MS >= self._cfg.progress_interval_ms:
-            self._flush_progress()
 
     def _flush_progress(self) -> None:
         if not self._pending:
@@ -177,4 +189,3 @@ class Player:
         self._emit(PLAYBACK_PROGRESS, gen, ranges=self._pending,
                    played_ms=self._written * FRAME_MS)
         self._pending = []
-        self._pending_frames = 0

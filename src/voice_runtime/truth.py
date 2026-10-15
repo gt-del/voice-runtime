@@ -54,6 +54,8 @@ class TruthLedger:
                 if w.end_ms > played_ms:
                     return None if start is None else (start, end)
                 at = self._full_text.find(w.word, pos, chunk_end)
+                if at < 0:  # 词与文本对不上：保守地停在这里
+                    return None if start is None else (start, end)
                 if start is None:
                     start = at
                 end = pos = at + len(w.word)
@@ -62,10 +64,10 @@ class TruthLedger:
     def summary(self) -> dict:
         chunks = sorted(self._chunks.items())
         heard = self._heard_range()
+        enq = [c for _, c in chunks if c.enqueued_frames > 0]
         return {
             "full_text": self._full_text,
-            "enqueued_text": "".join(self._full_text[c.text_range[0]:c.text_range[1]]
-                                     for _, c in chunks if c.enqueued_frames > 0),
+            "enqueued_text": self._full_text[enq[0].text_range[0]:enq[-1].text_range[1]] if enq else "",
             "heard_text": self._full_text[heard[0]:heard[1]] if heard else "",
             "heard_range": list(heard) if heard else [0, 0],
             "played_ms": sum(c.played_frames for _, c in chunks) * FRAME_MS,

@@ -245,3 +245,98 @@ def test_closed_player_never_writes_sink(tmp_path):
     assert r.player.state is GateState.CLOSED and r.sink.closed and run_done
     with pytest.raises(AssertionError):
         r.sink.write(1, 99, PCM)
+
+
+def test_progress_emitted_by_time_even_during_underrun(tmp_path):
+    async def main():
+        r = Rig(tmp_path)
+        await r.frames(1, 0, 3)
+        r.player.hold(1)
+        r.player.release(1)
+        r.start()
+        await asyncio.sleep(0.15)
+        return r
+
+    r = run(main())
+    first_write = r.sink.writes[0][0]
+    progress = r.of(PLAYBACK_PROGRESS)
+    assert [e["payload"]["ranges"] for e in progress] == [[[1, 0, 2]]]
+    assert progress[0]["payload"]["played_ms"] == 60
+    assert progress[0]["timestamp"] - first_write <= 100 + 20
+
+
+def test_gate3_drops_consecutive_stale_items_within_one_tick(tmp_path):
+    async def main():
+        r = Rig(tmp_path, active=(2,))
+        await r.frames(1, 0, 10)
+        await r.queue.put(PlaybackEOS(1, truncated=False))
+        await r.frames(2, 0, 2)
+        r.player.hold(2)
+        r.player.release(2)
+        r.start()
+        await asyncio.sleep(0.03)  # 只经过一个 tick（20ms）
+        return r
+
+    r = run(main())
+    assert r.sink.writes == [(20, 2, 0)]
+    assert len(r.of(STALE_EVENT_DROPPED)) == 11
+
+
+def test_no_underrun_before_first_frame_written(tmp_path):
+    async def main():
+        r = Rig(tmp_path)
+        r.player.hold(1)
+        r.player.release(1)
+        r.start()
+        await asyncio.sleep(0.11)
+        before = len(r.of(PLAYBACK_UNDERRUN))
+        await r.frames(1, 0, 1)
+        await asyncio.sleep(0.1)
+        return r, before
+
+    r, before = run(main())
+    assert before == 0
+    kinds = [e["event_type"] for e in r.events if e["event_type"] in (PLAYBACK_STARTED, PLAYBACK_UNDERRUN)]
+    assert kinds == [PLAYBACK_STARTED, PLAYBACK_UNDERRUN]
+
+
+def _sure_booking_ledger(played_frames: int) -> TruthLedger:
+    led = TruthLedger(1)
+    led.on_generated("Sure, booking now.")
+    led.on_synthesized(0, AudioChunk(bytes(220 * 32), (0, 13),
+                                     [WordTiming("Sure,", 0, 100), WordTiming("booking", 100, 220)]))
+    led.on_enqueued(0, 11)
+    for i in range(played_frames):
+        led.on_played(0, i)
+    return led
+
+
+def test_heard_text_word_ending_exactly_at_played_position_is_heard():
+    s = _sure_booking_ledger(5).summary()  # 100ms，正好是 "Sure," 的 end_ms
+    assert (s["heard_text"], s["heard_range"]) == ("Sure,", [0, 5])
+    s = _sure_booking_ledger(11).summary()  # 220ms，正好是 "booking" 的 end_ms
+    assert (s["heard_text"], s["heard_range"]) == ("Sure, booking", [0, 13])
+    assert s["chunks"][0]["truncated"] is False
+
+
+def test_heard_scan_stops_at_word_missing_from_text():
+    led = TruthLedger(1)
+    led.on_generated("Sure, booking")
+    led.on_synthesized(0, AudioChunk(bytes(220 * 32), (0, 13),
+                                     [WordTiming("Sure,", 0, 100), WordTiming("cooking", 100, 220)]))
+    led.on_enqueued(0, 11)
+    for i in range(11):
+        led.on_played(0, i)
+    s = led.summary()
+    assert (s["heard_text"], s["heard_range"]) == ("Sure,", [0, 5])
+
+
+def test_enqueued_text_keeps_whitespace_between_chunks():
+    led = TruthLedger(1)
+    led.on_generated("Sure, booking now.")
+    led.on_synthesized(0, AudioChunk(bytes(100 * 32), (0, 5), [WordTiming("Sure,", 0, 100)]))
+    led.on_synthesized(1, AudioChunk(bytes(120 * 32), (6, 13), [WordTiming("booking", 0, 120)]))
+    led.on_synthesized(2, AudioChunk(bytes(80 * 32), (14, 18), [WordTiming("now.", 0, 80)]))
+    led.on_enqueued(0, 5)
+    led.on_enqueued(1, 6)
+    assert led.summary()["enqueued_text"] == "Sure, booking"
