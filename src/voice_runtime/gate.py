@@ -6,7 +6,7 @@ from enum import StrEnum
 from voice_runtime.audio import SAMPLE_RATE
 from voice_runtime.config import RuntimeConfig
 from voice_runtime.providers.base import BackchannelScorer
-from voice_runtime.providers.fake import normalize_text
+from voice_runtime.text import normalize_text
 
 COMMAND_WORDS = ("stop", "wait", "no", "hold on")
 BACKCHANNELS = ("uh-huh", "mm-hmm", "yeah", "yep", "right", "okay", "sure", "i see", "got it")

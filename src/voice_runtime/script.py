@@ -5,7 +5,6 @@ from dataclasses import dataclass
 
 from voice_runtime.audio import FRAME_MS, Frame, WordTiming, tone, word_duration_ms
 from voice_runtime.events import SCRIPT_MARKER, EventLog
-from voice_runtime.vloop import now_ms
 
 
 @dataclass

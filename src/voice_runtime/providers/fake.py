@@ -2,25 +2,19 @@
 import asyncio
 import random
 import re
-import string
 from collections.abc import AsyncIterator, Callable
 from dataclasses import dataclass
 
-from voice_runtime.audio import (FRAME_MS, AudioChunk, Frame, WordTiming, rms, tone,
-                                 word_duration_ms)
+from voice_runtime.audio import AudioChunk, Frame, WordTiming, rms, tone, word_duration_ms
 from voice_runtime.providers.base import AsrEvent, AsrWord, TurnScore
 from voice_runtime.script import Noise, Speech
+from voice_runtime.text import PUNCT, normalize_text
 from voice_runtime.vloop import now_ms
 
-_PUNCT = str.maketrans("", "", string.punctuation)
 _END = object()
 _WOKE = object()  # 进行中的等待被 cancel() 打断
 CHUNK_MS = 200
 ENERGY_RMS = 1000.0
-
-
-def normalize_text(s: str) -> str:
-    return " ".join(s.lower().translate(_PUNCT).split())
 
 
 async def _hang() -> None:
@@ -327,7 +321,7 @@ class FakeASR:
         for w in (seg.text.split() if isinstance(seg, Speech) else []):
             end = t + word_duration_ms(w)
             words.append(AsrWord(w, t, end))
-            text = " ".join(x.w.translate(_PUNCT) for x in words)
+            text = " ".join(x.w.translate(PUNCT) for x in words)
             out.append((end + self._partial + self._jitter(),
                         AsrEvent("partial", text, tuple(words), k, start, end)))
             t = end

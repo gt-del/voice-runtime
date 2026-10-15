@@ -60,7 +60,6 @@ def run_scenario(sc: Scenario, trace_path: Path, *, max_virtual_ms: int = 60000,
             session.close()
 
         async def main() -> CloseReason:
-            nonlocal forced
             loop = asyncio.get_running_loop()
             event_type, nth, delay_ms = sc.close_after
             seen = 0

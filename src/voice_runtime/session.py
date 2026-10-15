@@ -19,7 +19,7 @@ from voice_runtime.generation import Generation, GenerationSupervisor, GenState
 from voice_runtime.playback import AudioSink, Player
 from voice_runtime.providers.base import (ASR, LLM, TTS, VAD, AsrEvent, BackchannelScorer,
                                           TurnScore, TurnScorer)
-from voice_runtime.providers.fake import normalize_text
+from voice_runtime.text import normalize_text
 from voice_runtime.queues import BoundedQueue, QueueClosed
 from voice_runtime.script import ScriptedAudioSource
 from voice_runtime.speech import SpeechEdge, SpeechTracker

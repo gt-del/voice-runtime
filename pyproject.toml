@@ -24,3 +24,4 @@ where = ["src"]
 [tool.pytest.ini_options]
 timeout = 30
 testpaths = ["tests"]
+filterwarnings = ["error"]

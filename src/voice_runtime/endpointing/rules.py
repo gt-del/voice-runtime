@@ -1,6 +1,6 @@
 """L1 确定性规则打分器：只看文本本身的语言信号。"""
 from voice_runtime.providers.base import TurnScore
-from voice_runtime.providers.fake import normalize_text
+from voice_runtime.text import normalize_text
 
 # 无歧义的"没说完"词：介词、连词、冠词、不能收尾的限定词、填充词。压过句末标点。
 STRONG_FUNCTION_WORDS = frozenset(
