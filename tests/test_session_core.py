@@ -197,3 +197,22 @@ def test_invalidate_is_idempotent(tmp_path):
     assert [c["payload"]["duplicate"] for c in cancelled] == [False, True]
     assert len(of(events, "stale_event_dropped", gate="purge")) == 1
     assert len(of(events, "session_closed")) == 1
+
+
+def test_l2_scorer_is_wired_and_receives_audio(tmp_path):
+    from voice_runtime.providers.base import TurnScore
+    from voice_runtime.providers.fake import ScriptedTurnScorer
+
+    got: list[bytes | None] = []
+
+    class SpyL2(ScriptedTurnScorer):
+        async def score(self, text, audio=None):
+            got.append(audio)
+            return await super().score(text, audio)
+
+    r = run_scenario(scenario("l2wired", [Speech("Book a table for two please.")]), tmp_path,
+                     l1=ScriptedTurnScorer({}, TurnScore(0.6, 0.4)),
+                     l2=SpyL2({}, TurnScore(0.95, 0.9)))
+    assert got and got[0]
+    ep = of(r.events, "endpoint_committed")[0]["payload"]
+    assert ep["level"] == 2

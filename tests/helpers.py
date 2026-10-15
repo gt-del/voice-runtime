@@ -26,28 +26,29 @@ class ScenarioResult:
     state_at_close: SessionState  # 触发 close 那一刻的状态（run 结束后 state 必为 CLOSED）
 
 
-def build_session(sc: Scenario, cfg: RuntimeConfig, log: EventLog) -> tuple[Session, FakeSink]:
+def build_session(sc: Scenario, cfg: RuntimeConfig, log: EventLog, *, l1=None, l2=None) -> tuple[Session, FakeSink]:
     source = ScriptedAudioSource(sc.segments, log)
     providers = Providers(
         vad=FakeVAD(),
         asr=FakeASR(sc.segments, **sc.asr_kwargs),
         llm=FakeLLM(sc.llm_replies, sc.default_reply, sc.llm_faults),
         tts=FakeTTS(sc.tts_faults, leading_noise_ms=sc.tts_leading_noise_ms),
-        l1=RuleTurnScorer(),
+        l1=l1 or RuleTurnScorer(),
+        l2=l2,
         backchannel=FakeBackchannelScorer(),
     )
     sink = FakeSink()
     return Session(cfg, providers, source, sink, log), sink
 
 
-def run_scenario(sc: Scenario, tmp_path: Path, *, max_virtual_ms: int = 60000,
+def run_scenario(sc: Scenario, tmp_path: Path, *, max_virtual_ms: int = 60000, l1=None, l2=None,
                  **cfg_overrides) -> ScenarioResult:
     cfg = RuntimeConfig(**{**sc.cfg_overrides, **cfg_overrides})
     log = EventLog(tmp_path / f"{sc.name}.jsonl", "s1")
     events: list[dict] = []
     log.add_listener(events.append)
     try:
-        session, sink = build_session(sc, cfg, log)
+        session, sink = build_session(sc, cfg, log, l1=l1, l2=l2)
         forced = False
         state_at_close: SessionState | None = None
 

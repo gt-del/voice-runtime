@@ -354,8 +354,9 @@ def test_at_most_one_inflight_per_level(tmp_path):
         l2 = _Spy({}, TurnScore(0.5, 0.9), delay_ms=100)
         c, _ = _mk3(tmp_path, ScriptedTurnScorer({}, TurnScore(0.6, 0.4)), l2)
         await _speak_then_end(c, "book it")
-        await _sleep_to(END_TS + 90)
-        c.on_text("", False)  # 文本没变，不重复请求
+        await _sleep_to(END_TS + 90)  # L2 已在途
+        c._score_level(1)  # 同一 (epoch, text_version, level) 再次升级
+        c._score_level(1)
         await _sleep_to(END_TS + 280)
         return l2
     assert len(run(body()).calls) == 1
