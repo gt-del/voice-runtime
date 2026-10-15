@@ -96,7 +96,6 @@ def test_scorer_cancellation_propagates():
         t.cancel()
         with pytest.raises(asyncio.CancelledError):
             await t
-    cfg_slow = None  # noqa: F841
     run(go())
 
 
