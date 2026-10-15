@@ -367,8 +367,8 @@ def test_drop_unplayed_keeps_partially_played_chunk_played_and_truncated():
     c0, c1 = led.summary()["chunks"]
     assert (c0["state"], c0["truncated"], c0["played_samples"]) == ("played", True, 7 * FRAME_SAMPLES)
     assert "reason" not in c0 and "gate" not in c0
-    assert (c1["state"], c1["reason"], c1["gate"], c1["played_samples"]) == \
-        ("dropped", "barge_in", "purge", 0)
+    assert (c1["state"], c1["reason"], c1["gate"], c1["played_samples"], c1["truncated"]) == \
+        ("dropped", "barge_in", "purge", 0, False)
 
 
 def test_on_dropped_never_overrides_played_frames():
@@ -377,15 +377,17 @@ def test_on_dropped_never_overrides_played_frames():
     assert led.summary()["chunks"][0]["state"] == "played"
 
 
-def test_played_words_since_uses_write_time_of_each_word():
+def test_played_words_between_uses_write_time_of_each_word():
     led = TruthLedger(1)
     led.on_generated("Sure, booking now.")
     led.on_synthesized(0, AudioChunk(bytes(260 * 32), (0, 18), [
         WordTiming("Sure,", 40, 140), WordTiming("booking", 140, 260)]))  # 开头 40ms 底噪
     led.on_enqueued(0, 13)
-    for i in range(9):  # 0..8 帧：底噪 2 帧，"Sure," 5 帧（写于 40..120），"booking" 2 帧（140、160）
+    for i in range(9):  # 0..8 帧：底噪 2 帧，"Sure," 5 帧（写于 1040..1120），"booking" 2 帧（1140、1160）
         led.on_played(0, i, 1000 + i * 20)
-    assert led.played_words_since(0) == ["Sure,", "booking"]
-    assert led.played_words_since(1000 + 120) == ["Sure,", "booking"]  # "Sure," 最后一帧写于 1120
-    assert led.played_words_since(1000 + 140) == ["booking"]
-    assert led.played_words_since(1000 + 180) == []
+    assert led.played_words_between(0, 5000) == ["Sure,", "booking"]
+    assert led.played_words_between(1120, 5000) == ["Sure,", "booking"]  # "Sure," 末帧写于 1120
+    assert led.played_words_between(1140, 5000) == ["booking"]
+    assert led.played_words_between(1180, 5000) == []
+    assert led.played_words_between(0, 1140) == ["Sure,"]  # "booking" 首帧写于 1140，不在窗口内
+    assert led.played_words_between(0, 1040) == []

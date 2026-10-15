@@ -15,7 +15,7 @@ from voice_runtime.events import (ASR_FINAL, ASR_PARTIAL, AUDIO_FRAME, BARGEIN_D
                                   SPECULATION_ADOPTED, SPECULATION_DISCARDED, SPECULATION_STARTED,
                                   SPEECH_END, SPEECH_START, STALE_EVENT_DROPPED, TURN_STARTED,
                                   EventLog)
-from voice_runtime.gate import ECHO_LOOKBACK_MS, GateResult, Utterance, decide
+from voice_runtime.gate import ECHO_LAG_MS, ECHO_LOOKBACK_MS, GateResult, Utterance, decide
 from voice_runtime.generation import Generation, GenerationSupervisor, GenState
 from voice_runtime.playback import AudioSink, Player
 from voice_runtime.providers.base import (ASR, LLM, TTS, VAD, AsrEvent, BackchannelScorer,
@@ -557,8 +557,12 @@ class Session:
         self._decide_task = self._spawn(self._decide(g, now, late), "session/gate-decide")
 
     async def _decide(self, g: _GateUtterance, now: int, late: bool) -> None:
-        # 回声比对窗口来自 Playback Truth：这段话开口前 ECHO_LOOKBACK_MS 起，机器人实际播出的词
-        played = self._ledger_of(g.generation_id).played_words_since(g.u.start_ms - ECHO_LOOKBACK_MS)
+        # 回声比对窗口来自 Playback Truth，只到这段话结束为止：恢复播放后机器人再说的词不能拿来比对
+        # （迟到词重新判定时，否则用户的话可能被机器人后来恰好说出的词"认领"成回声）
+        u = g.u
+        until = (u.vad_ended_at_ms if u.vad_ended_at_ms is not None else now) + ECHO_LAG_MS
+        played = self._ledger_of(g.generation_id).played_words_between(
+            u.start_ms - ECHO_LOOKBACK_MS, until)
         try:
             result, rule, details = await decide(g.u, now, self.cfg, self._p.backchannel, played)
         finally:

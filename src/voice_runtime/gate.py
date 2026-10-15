@@ -13,7 +13,9 @@ COMMAND_WORDS = ("stop", "wait", "no", "hold on")
 BACKCHANNELS = ("uh-huh", "mm-hmm", "yeah", "yep", "right", "okay", "sure", "i see", "got it")
 
 SLICE_BYTES = SAMPLE_RATE * 80 // 1000 * 2  # 80ms PCM16 = 1280 samples = 2560 字节
-ECHO_LOOKBACK_MS = 500  # 回声比对窗口：这段话开口前 500ms 到现在，机器人实际播出的词
+# 回声比对窗口：机器人在 [开口前 500ms, 这段话结束（未结束则为现在）+ 100ms) 内实际播出的词
+ECHO_LOOKBACK_MS = 500
+ECHO_LAG_MS = 100
 
 _COMMANDS = tuple(tuple(normalize_text(c).split()) for c in COMMAND_WORDS)
 _BACKCHANNELS = tuple(tuple(normalize_text(b).split()) for b in BACKCHANNELS)

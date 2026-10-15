@@ -268,3 +268,25 @@ def test_generation_failure_during_gate_carries_over_not_barge_in(tmp_path):
     assert [s["payload"]["cause"] for s in started] == ["speech_start", "carry_over"]
     assert started[1]["sequence_number"] > failed["sequence_number"]
     assert of(ev, "context_committed", role="user")[0]["payload"]["outcome"] == "failed"
+
+
+def test_late_redecision_ignores_words_robot_played_after_utterance_ended(tmp_path):
+    """用户抢先说出机器人接下来要说的 "At seven."，ASR 很慢：先判噪声并恢复播放，机器人随后正好播出
+    "at seven"；迟到的 final 重新判定时，回声窗口只到这段话结束，不能把用户的话认领成回声。"""
+    segs = [Speech(REQUEST), AfterEvent("playback_started", 1200), Speech("At seven.")]
+    asr = {"partial_latency_ms": 600, "final_latency_ms": 700}
+    r = run_scenario(scenario("late_echo_window", segs, asr_kwargs=asr,
+                              close_after=("context_committed", 4, 100)), tmp_path)
+    ev = r.events
+    resumed = of(ev, "playback_resumed")[0]
+    final = of(ev, "asr_final", text="At seven.")[0]
+    assert resumed["sequence_number"] < final["sequence_number"]
+    # 恢复播放后、迟到的 final 到达前，机器人确实播出了 "at seven"
+    heard = of(ev, "context_committed", role="assistant")[0]["payload"]["text"]
+    assert heard.endswith("booked for Thursday at seven in")
+    d = of(ev, "bargein_decision")
+    assert [(x["payload"]["result"], x["payload"]["rule"], x["payload"]["late_interrupt"])
+            for x in d] == [("noise", "noise_timeout", False),
+                            ("interrupt", "default_interrupt", True)]
+    assert d[1]["payload"]["words"] == ["at", "seven"] and d[1]["payload"]["echo_words"] == []
+    assert_interrupted_turn(ev, 1)
