@@ -238,3 +238,43 @@ def test_swallow_first_cancel_keeps_cancelling_count_consistent():
             await task
 
     run(body())
+
+
+def test_tts_multi_word_piece_text_ranges_slice_back_to_words():
+    text = "alpha beta gamma delta epsilon zeta eta theta "
+
+    async def body():
+        tts = FakeTTS(StreamFaults(0, 0, jitter_ms=0))
+        return [c for _, c in await _timed(tts.start(_feed([(0, text)])))]
+
+    chunks = run(body())
+    for c in chunks:
+        a, b = c.text_range
+        assert text[a:b].split() == [t.word for t in c.word_timings]
+    assert "".join(text[a:b] for a, b in (c.text_range for c in chunks)).strip() == text.strip()
+    assert max(b for _, b in (c.text_range for c in chunks)) <= len(text)
+
+
+def test_tts_swallowed_cancel_keeps_in_flight_text_fetch():
+    async def body():
+        tts = FakeTTS(StreamFaults(0, 0, jitter_ms=0, swallow_first_cancel=True))
+        s = tts.start(_feed([(0, "alpha "), (3000, "beta gamma ")]))
+        t0 = now_ms()
+        task = asyncio.create_task(_timed(s), name="test/consumer")
+        await asyncio.sleep(1)
+        task.cancel()
+        out = await task
+        assert now_ms() - t0 >= 3000
+        assert [w.word for _, c in out for w in c.word_timings] == ["alpha", "beta", "gamma"]
+        assert out[-1][0] >= t0 + 3000
+
+        s2 = tts.start(_feed([(0, "alpha "), (3000, "beta ")]))
+        task = asyncio.create_task(_timed(s2), name="test/consumer2")
+        await asyncio.sleep(1)
+        task.cancel()
+        await asyncio.sleep(0.5)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+
+    run(body())

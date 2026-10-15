@@ -196,11 +196,13 @@ class _TtsStream(_FakeStream):
         self._pending: list[tuple[str, int, int]] = []
         self._first_text_at: int | None = None
         self._last_emit = 0
+        self._fetch_task: asyncio.Task | None = None
         self._started = False  # 已吐出第一个 chunk
 
     def _scan_words(self) -> None:
-        for m in re.finditer(r"\S+", self._text[self._scan:]):
-            s, e = self._scan + m.start(), self._scan + m.end()
+        base = self._scan
+        for m in re.finditer(r"\S+", self._text[base:]):
+            s, e = base + m.start(), base + m.end()
             if e == len(self._text) and not self._eos:
                 return  # 末尾的词后面还没有空白，尚未完整
             self._pending.append((m.group(), s, e))
@@ -213,17 +215,37 @@ class _TtsStream(_FakeStream):
             except StopAsyncIteration:
                 return _END
 
-        task = asyncio.create_task(nxt(), name="fake/tts-fetch")
+        if self._fetch_task is None:
+            self._fetch_task = asyncio.create_task(nxt(), name="fake/tts-fetch")
+        task = self._fetch_task
         fut = self._waiter = asyncio.get_running_loop().create_future()
-        task.add_done_callback(lambda _: fut.done() or fut.set_result(True))
+        if task.done():
+            fut.set_result(True)
+        else:
+            task.add_done_callback(lambda _: fut.done() or fut.set_result(True))
         try:
-            await fut
+            woke = not await fut
+        except asyncio.CancelledError:
+            # 第一次（将被吞掉的）取消：保留在途的 fetch，重跑时继续等它；否则真正退出，回收
+            if not (self._f.swallow_first_cancel and not self._swallowed):
+                await self._reap(task)
+            raise
         finally:
             self._waiter = None
-            if not task.done():
-                task.cancel()  # 必须在返回/抛出前回收；cancel 胜出时在途的这段文本会丢
-            await asyncio.wait({task})
-        return task.result() if fut.result() is True and not task.cancelled() else _WOKE
+        if woke:
+            await self._reap(task)  # cancel() 胜出：在途的这段文本会丢
+            return _WOKE
+        self._fetch_task = None
+        return task.result()
+
+    async def _reap(self, task: asyncio.Task) -> None:
+        """退出前取消并等待 fetch 任务，并取走它的异常，避免任务泄漏与未取回异常日志。"""
+        self._fetch_task = None
+        if not task.done():
+            task.cancel()
+        await asyncio.wait({task})
+        if not task.cancelled():
+            task.exception()
 
     async def _fill(self) -> bool:
         while not self._eos and sum(word_duration_ms(w) for w, _, _ in self._pending) < CHUNK_MS:
