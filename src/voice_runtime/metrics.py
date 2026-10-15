@@ -93,8 +93,16 @@ def _barge_in_onset(events: list[dict], i: int, audible: bool, m: dict) -> None:
     start = _first_after(events, i, lambda x: x["event_type"] == SPEECH_START)
     if start is not None:
         m["speech_start_detection_ms"].append(start["timestamp"] - onset)
+    # 停播只与本段配对：须在本段结束（end marker）之前、且在下一个 speech/noise 段开始之前
+    end = _first_after(events, i, lambda x: _is_marker(x, "speech", "end"))
+    nxt = _first_after(events, i, lambda x: x["event_type"] == SCRIPT_MARKER
+                       and x["payload"].get("phase") == "start"
+                       and x["payload"].get("segment") in ("speech", "noise"))
+    limit = min(x["sequence_number"] for x in (end, nxt, events[-1]) if x is not None)
     stop = _first_after(events, i, lambda x: x["event_type"] == PLAYBACK_STOPPED
                         and x["payload"].get("reason") == PAUSED)
+    if stop is not None and stop["sequence_number"] > limit:
+        stop = None
     if stop is not None:
         m["playback_stop_ms"].append(stop["timestamp"] - onset)
     decision = _first_after(events, i, lambda x: x["event_type"] == BARGEIN_DECISION
@@ -104,7 +112,6 @@ def _barge_in_onset(events: list[dict], i: int, audible: bool, m: dict) -> None:
     if not audible:
         m["overlap_ms"].append(0)
         return
-    end = _first_after(events, i, lambda x: _is_marker(x, "speech", "end"))
     silenced = _first_after(events, i, lambda x: x["event_type"] == PLAYBACK_STOPPED)  # 任意原因停声
     ends = [x["timestamp"] for x in (end, silenced) if x is not None]
     m["overlap_ms"].append(min(ends) - onset if ends else 0)

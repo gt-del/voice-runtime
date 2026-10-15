@@ -87,7 +87,7 @@ def test_D_noise_not_permanent(tmp_path):
     ev, m = r.events, r.metrics
     assert m["false_interruption_count"] == 0
     assert m["false_pause_count"] == 1 and m["pause_total_ms"] > 0
-    assert m["playback_stop_ms"] == [] or m["playback_stop_ms"][0] <= 250
+    assert m["playback_stop_ms"] == []  # 噪声不是 speech 开口，不计打断延迟
     assert not of(ev, "generation_cancelled", duplicate=False)
     assert [s["payload"]["reason"] for s in of(ev, "playback_stopped")] == \
         ["paused_pending_decision", "completed"]
@@ -126,6 +126,9 @@ def test_E_late_chunk_after_close_never_written(tmp_path):
     close_at = of(ev, "bargein_decision")[0]["timestamp"] + 500
     late = of(ev, "stale_event_dropped", phase="late", unit="chunk")
     assert late and late[-1]["timestamp"] > close_at  # 迟到 chunk 确实落在关闭开始之后
+    assert late[-1]["payload"]["gate"] == "session_closed"
+    assert all(x["payload"]["gate"] == "session_closed"
+               for x in of(ev, "stale_event_dropped") if x["timestamp"] > close_at)
     assert all(ts < close_at for ts, _, _ in r.sink.writes)
     assert r.sink.closed
     closed = of(ev, "session_closed")[0]

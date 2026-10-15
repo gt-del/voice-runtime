@@ -96,6 +96,19 @@ def test_speech_outside_playback_is_not_an_onset():
     assert m["speech_start_detection_ms"] == [] and m["overlap_ms"] == []
 
 
+def test_playback_stop_pairs_only_with_its_own_segment():
+    e = Log()
+    e(0, "playback_started", gen=1)
+    e.marker(500, "speech", "start")  # 这段话没有触发暂停（例如太短）
+    e.marker(540, "speech", "end")
+    e(560, "speech_start")
+    e.marker(1000, "noise", "start")  # 之后的噪声才触发暂停：不属于上面那个开口
+    e(1060, "playback_stopped", gen=1, reason="paused_pending_decision")
+    m = compute_metrics(e.events)
+    assert m["playback_stop_ms"] == []
+    assert m["overlap_ms"] == [40]
+
+
 def test_onset_while_paused_has_zero_overlap():
     e = Log()
     e(0, "playback_started", gen=1)

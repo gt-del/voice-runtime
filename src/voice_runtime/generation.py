@@ -42,7 +42,8 @@ class GenerationSupervisor:
     def __init__(self, gen: Generation, cfg: RuntimeConfig, log: EventLog, llm: LLM, tts: TTS,
                  messages: list[dict], playback_queue: BoundedQueue,
                  is_active: Callable[[Generation], bool],
-                 on_failed: Callable[[Generation, str], None]):
+                 on_failed: Callable[[Generation, str], None],
+                 is_closed: Callable[[], bool] = lambda: False):
         self.gen = gen
         self._cfg = cfg
         self._log = log
@@ -52,6 +53,7 @@ class GenerationSupervisor:
         self._playback = playback_queue
         self._is_active = is_active
         self._on_failed = on_failed
+        self._is_closed = is_closed  # session 已开始关闭：闸①②拒绝时记 gate=session_closed
         self._streams: list[ProviderStream] = []
         self._waits: dict[str, asyncio.Timeout] = {}  # 正在等上游下一项的超时上下文
         self._tg: asyncio.TaskGroup | None = None
@@ -107,6 +109,10 @@ class GenerationSupervisor:
             s.cancel()
         self._start_grace()
 
+    def pending_tasks(self) -> list[asyncio.Task]:
+        """本 generation 仍未退出的子任务（bridge、grace），供 session 关闭时直接再取消。"""
+        return [t for t in (*self._bridges, self._grace) if t is not None and not t.done()]
+
     def finish(self) -> None:
         self.gen.state = GenState.UPSTREAM_CLOSED
         self.gen.text_queue.close()  # 闸①此后一律拒绝；关闭让 TTS 的输入流正常结束
@@ -118,14 +124,17 @@ class GenerationSupervisor:
         self._log.emit(event_type, turn_id=self.gen.turn_id, generation_id=self.gen.id, **payload)
 
     def _accept(self, _item) -> bool:
-        return self._is_active(self.gen) and self.gen.state is GenState.ACTIVE
+        return (not self._is_closed() and self._is_active(self.gen)
+                and self.gen.state is GenState.ACTIVE)
 
     def _received_live(self) -> bool:
         """收到上游项时 generation 是否还没被取消/终止：决定被拒时记 rejected_on_wake 还是 late。"""
         return self.gen.state is GenState.ACTIVE and self.gen.cancelled_at_ms is None
 
     def _reject(self, gate: str, received_live: bool, **payload) -> tuple[str, str]:
-        if self.gen.state is GenState.UPSTREAM_CLOSED:
+        if self._is_closed():
+            gate = "session_closed"
+        elif self.gen.state is GenState.UPSTREAM_CLOSED:
             gate = "finished"
         phase = "rejected_on_wake" if received_live else "late"
         self._emit(STALE_EVENT_DROPPED, gate=gate, phase=phase, **payload)
@@ -141,7 +150,11 @@ class GenerationSupervisor:
     def _start_grace(self) -> None:
         if self._tg is None or self._bridges_done or self._failures or self._grace is not None:
             return
-        self._grace = self._tg.create_task(self._watch_grace(), name=f"gen-{self.gen.id}/grace")
+        coro = self._watch_grace()
+        try:
+            self._grace = self._tg.create_task(coro, name=f"gen-{self.gen.id}/grace")
+        except RuntimeError:  # TaskGroup 正在关闭：子任务都已被取消，不需要看门狗
+            coro.close()
 
     async def _watch_grace(self) -> None:
         delay_ms = self.gen.cancelled_at_ms + self._cfg.cancel_grace_ms - now_ms()
@@ -287,13 +300,14 @@ class GenerationSupervisor:
         await self._put_eos()
 
     def _accept_eos(self, _item) -> bool:
-        return self._is_active(self.gen)  # EOS 过闸②只看 is_active：finish 之后的 EOS 仍需放行
+        # EOS 过闸②只看 is_active 与 session 未关闭：finish 之后的 EOS 仍需放行
+        return not self._is_closed() and self._is_active(self.gen)
 
     async def _put_eos(self) -> None:
         self._eos_sent = True
         live = self._received_live()
         eos = PlaybackEOS(self.gen.id, truncated=self.gen.state is GenState.UPSTREAM_CLOSED)
         if not (self._accept_eos(eos) and await self._playback.put(eos, self._accept_eos)):
-            # EOS 不受 UPSTREAM_CLOSED 拦截，被拒只可能是 is_active 为假，所以闸固定记 "2"
-            self._emit(STALE_EVENT_DROPPED, gate="2",
+            # EOS 不受 UPSTREAM_CLOSED 拦截：被拒只可能是 session 已关闭或 is_active 为假
+            self._emit(STALE_EVENT_DROPPED, gate="session_closed" if self._is_closed() else "2",
                        phase="rejected_on_wake" if live else "late", unit="eos")

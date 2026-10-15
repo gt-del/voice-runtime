@@ -134,6 +134,7 @@ class Session:
                 self._begin_close()  # 第 1～3 步
                 await self._stop_tasks()  # 第 4、5 步
         except* Exception as eg:
+            # 主动关闭过程中 session 级任务抛异常，同样按异常路径处理：reason 覆盖为 session_task_failed
             e = eg.exceptions[0]
             error = f"{type(e).__name__}: {e}"
             self._close_reason = CloseReason.SESSION_TASK_FAILED
@@ -180,32 +181,32 @@ class Session:
         self._closing = True
         audible = self.state in (SessionState.PLAYING, SessionState.PAUSED)
         self.state = SessionState.CLOSING
+        # 与打断相同：先停播（补记关闭前已播帧的 progress、附 Playback Truth），再作废
+        cur = self._player.current_generation
+        if audible and cur is not None:
+            self._player.stop_generation(cur, "session_closed")
         gid = self.active_generation_id
         if gid is not None:
             self.invalidate(self._gens[gid], "session_closed")
-        cur = self._player.current_generation
-        if audible and cur is not None:  # 正在播（含暂停中）：停播并附 Playback Truth
-            self._player.stop_generation(cur, "session_closed")
         self._player.close()
 
     async def _stop_tasks(self) -> None:
-        """关闭第 4、5 步：取消 session/* 循环，等所有任务退出；每超过一个 close_grace_ms
-        写一条 close_timeout 并对仍未退出的任务再 cancel() 一次。"""
+        """关闭第 4、5 步：取消 session/* 循环，等 Session 自己登记的任务（session/* 与各 supervisor）
+        全部退出；每超过一个 close_grace_ms 写一条 close_timeout，并对仍未退出的任务再 cancel() 一次。
+        supervisor 已在自己 TaskGroup 的 __aexit__ 中时，取消它不会再传给子任务，所以子任务由
+        supervisor 交出、直接再取消。"""
         for t in self._tasks:
             if t.get_name().startswith("session/"):
                 t.cancel()
-        me = asyncio.current_task()
         rnd = 0
-        while True:
-            # 包括 generation TaskGroup 里的子任务：supervisor 已在 __aexit__ 中时，再取消它不会再传给子任务
-            alive = [t for t in asyncio.all_tasks() if t is not me and not t.done()
-                     and t.get_name().startswith(("session/", "gen-"))]
-            if not alive:
-                return
-            _, pending = await asyncio.wait(alive, timeout=self.cfg.close_grace_ms / 1000)
-            pending = sorted((t for t in pending if not t.done()), key=asyncio.Task.get_name)
+        while self._tasks:
+            _, pending = await asyncio.wait(set(self._tasks), timeout=self.cfg.close_grace_ms / 1000)
+            pending = [t for t in pending if not t.done()]
             if not pending:
                 continue
+            for gid in sorted(self._running_sups):
+                pending += self._sups[gid].pending_tasks()
+            pending.sort(key=asyncio.Task.get_name)
             rnd += 1
             names = [t.get_name() for t in pending]
             self._overdue.update(names)
@@ -336,6 +337,7 @@ class Session:
         sup = GenerationSupervisor(gen, self.cfg, self._log, self._p.llm, self._p.tts, messages,
                                    self.queues["playback"],
                                    is_active=lambda g: g.id == self.active_generation_id,
+                                   is_closed=lambda: self._closing,
                                    on_failed=self._on_failed)
         self._sups[gid] = sup
         self._running_sups.add(gid)

@@ -65,13 +65,27 @@ def test_no_running_tasks_after_close(tmp_path):
     assert len(closed) == 1 and closed[0]["payload"]["overdue_task_count"] == 0
     assert closed[0]["payload"]["reason"] == "explicit_close"
     assert set(closed[0]["payload"]["residual"]) == set(closed[0]["payload"]["queue_max_depth"])
-    # 在播时关闭：先作废，再停播（附 Playback Truth），然后才写 session_closed
+    # 在播时关闭：先停播（补记 progress、附 Playback Truth），再作废，然后才写 session_closed
     stopped = of(events, "playback_stopped", reason="session_closed")
     cancelled = of(events, "generation_cancelled", reason="session_closed")
     assert len(stopped) == 1 and len(cancelled) == 1
-    assert cancelled[0]["sequence_number"] < stopped[0]["sequence_number"] \
+    assert stopped[0]["sequence_number"] < cancelled[0]["sequence_number"] \
         < closed[0]["sequence_number"]
     assert "playback_truth" in stopped[0]["payload"]
+
+
+def test_close_mid_playback_counts_no_stale_played_frames(tmp_path):
+    """关闭前已播的帧在作废之前补记 progress，不能被算成 stale_chunk_played。"""
+    sc = scenario("mid_close", [Speech(REQUEST)], close_after=("playback_started", 1, 310))
+    r = run_scenario(sc, tmp_path)
+    assert r.state_at_close is SessionState.PLAYING
+    stopped = of(r.events, "playback_stopped", reason="session_closed")
+    cancelled = of(r.events, "generation_cancelled", reason="session_closed")
+    assert len(stopped) == 1 and len(cancelled) == 1
+    assert stopped[0]["sequence_number"] < cancelled[0]["sequence_number"]
+    progress = of(r.events, "playback_progress")
+    assert progress and progress[-1]["sequence_number"] < cancelled[0]["sequence_number"]
+    assert r.metrics["stale_chunk_played"] == 0
 
 
 def test_swallowing_provider_triggers_recancel_rounds(tmp_path):
@@ -194,3 +208,23 @@ def test_concurrent_invalidate_is_idempotent(tmp_path):
     cancelled = of(events, "generation_cancelled")
     assert [c["payload"]["duplicate"] for c in cancelled] == [False, True, True]
     assert len(of(events, "stale_event_dropped", gate="purge")) == 1
+
+
+def test_external_cancel_with_swallowing_provider_closes_cleanly(tmp_path):
+    llm = StreamFaults(300, 50, hang_after=1, swallow_first_cancel=True,
+                       late_after_cancel_ms=(10_000,))
+
+    async def body(session, task, events):
+        await wait_for(events, "llm_chunk")
+        await asyncio.sleep(0.2)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        return session_tasks()
+
+    alive, events, _, _ = drive(tmp_path, scenario("ext_swallow", [Speech(REQUEST)], llm=llm),
+                                body)
+    assert alive == []
+    assert not of(events, "task_failed") and not of(events, "generation_failed")
+    closed = of(events, "session_closed")
+    assert len(closed) == 1 and closed[0]["payload"]["reason"] == "explicit_close"
