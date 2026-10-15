@@ -1,0 +1,166 @@
+{
+  "A": {
+    "endpoint_latency_ms": [
+      200
+    ],
+    "false_interruption_count": 0,
+    "false_pause_count": 0,
+    "interruption_decision_ms": [],
+    "overlap_ms": [],
+    "pause_total_ms": 0,
+    "playback_stop_ms": [],
+    "queue_max_depth": {
+      "asr_in": 1,
+      "playback": 25,
+      "text": 2
+    },
+    "speech_start_detection_ms": [],
+    "stale_chunk_played": 0,
+    "stale_chunk_received": 0,
+    "stale_purged_frames": 0,
+    "stale_rejected_on_wake": 0,
+    "turn_end_to_first_audio_ms": [
+      460
+    ]
+  },
+  "A_prime": {
+    "endpoint_latency_ms": [
+      200
+    ],
+    "false_interruption_count": 0,
+    "false_pause_count": 0,
+    "interruption_decision_ms": [],
+    "overlap_ms": [],
+    "pause_total_ms": 0,
+    "playback_stop_ms": [],
+    "queue_max_depth": {
+      "asr_in": 1,
+      "playback": 25,
+      "text": 2
+    },
+    "speech_start_detection_ms": [],
+    "stale_chunk_played": 0,
+    "stale_chunk_received": 0,
+    "stale_purged_frames": 0,
+    "stale_rejected_on_wake": 0,
+    "turn_end_to_first_audio_ms": [
+      540
+    ]
+  },
+  "B": {
+    "endpoint_latency_ms": [
+      200
+    ],
+    "false_interruption_count": 0,
+    "false_pause_count": 0,
+    "interruption_decision_ms": [],
+    "overlap_ms": [],
+    "pause_total_ms": 0,
+    "playback_stop_ms": [],
+    "queue_max_depth": {
+      "asr_in": 1,
+      "playback": 32,
+      "text": 2
+    },
+    "speech_start_detection_ms": [],
+    "stale_chunk_played": 0,
+    "stale_chunk_received": 0,
+    "stale_purged_frames": 32,
+    "stale_rejected_on_wake": 0,
+    "turn_end_to_first_audio_ms": [
+      460
+    ]
+  },
+  "C": {
+    "endpoint_latency_ms": [
+      200,
+      200
+    ],
+    "false_interruption_count": 0,
+    "false_pause_count": 0,
+    "interruption_decision_ms": [
+      240
+    ],
+    "overlap_ms": [
+      40
+    ],
+    "pause_total_ms": 0,
+    "playback_stop_ms": [
+      40
+    ],
+    "queue_max_depth": {
+      "asr_in": 1,
+      "playback": 65,
+      "text": 2
+    },
+    "speech_start_detection_ms": [
+      40
+    ],
+    "stale_chunk_played": 0,
+    "stale_chunk_received": 0,
+    "stale_purged_frames": 65,
+    "stale_rejected_on_wake": 0,
+    "turn_end_to_first_audio_ms": [
+      460,
+      460
+    ]
+  },
+  "D": {
+    "endpoint_latency_ms": [
+      200
+    ],
+    "false_interruption_count": 0,
+    "false_pause_count": 1,
+    "interruption_decision_ms": [],
+    "overlap_ms": [],
+    "pause_total_ms": 240,
+    "playback_stop_ms": [],
+    "queue_max_depth": {
+      "asr_in": 1,
+      "playback": 75,
+      "text": 3
+    },
+    "speech_start_detection_ms": [],
+    "stale_chunk_played": 0,
+    "stale_chunk_received": 0,
+    "stale_purged_frames": 0,
+    "stale_rejected_on_wake": 0,
+    "turn_end_to_first_audio_ms": [
+      460
+    ]
+  },
+  "E": {
+    "endpoint_latency_ms": [
+      200,
+      200
+    ],
+    "false_interruption_count": 0,
+    "false_pause_count": 0,
+    "interruption_decision_ms": [
+      240
+    ],
+    "overlap_ms": [
+      40
+    ],
+    "pause_total_ms": 0,
+    "playback_stop_ms": [
+      40
+    ],
+    "queue_max_depth": {
+      "asr_in": 1,
+      "playback": 65,
+      "text": 2
+    },
+    "speech_start_detection_ms": [
+      40
+    ],
+    "stale_chunk_played": 0,
+    "stale_chunk_received": 2,
+    "stale_purged_frames": 65,
+    "stale_rejected_on_wake": 0,
+    "turn_end_to_first_audio_ms": [
+      540,
+      540
+    ]
+  }
+}
